@@ -1,0 +1,126 @@
+# ==============================================================================
+# SkinCancerTracker - Dataset Schema & Validation Configuration
+# Specification for ISIC Multimodal Dermatology Dataset & Supplementary Metadata
+# ==============================================================================
+
+dataset:
+  name: "milk10k_multimodal"
+  data_root: "data" # Overrideable via --data-root CLI flag
+  image_dir: "images" # Relative to data_root
+
+files:
+  training_input:
+    filename: "training_input.csv"
+    required: true
+    primary_key: "isic_id"
+    group_key: "lesion_id"
+    required_columns:
+      - "isic_id"
+      - "lesion_id"
+      - "image_type"
+      - "image_manipulation"
+      - "age_approx"
+      - "sex"
+      - "skin_tone_class"
+    optional_columns:
+      - "site"
+      - "attribution"
+      - "copyright_license"
+      - "MONET_ulceration_crust"
+      - "MONET_hair"
+      - "MONET_vasculature_vessels"
+      - "MONET_erythema"
+      - "MONET_pigmented"
+      - "MONET_gel_water_drop_fluid_dermoscopy_liquid"
+      - "MONET_skin_markings_pen_ink_purple_pen"
+
+  training_gt:
+    filename: "training_gt.csv"
+    required: true
+    group_key: "lesion_id"
+    required_columns:
+      - "lesion_id"
+    one_hot_columns:
+      - "AKIEC"
+      - "BCC"
+      - "BEN_OTH"
+      - "BKL"
+      - "DF"
+      - "INF"
+      - "MAL_OTH"
+      - "MEL"
+      - "NV"
+      - "SCCKA"
+      - "VASC"
+
+  metadata:
+    filename: "metadata.csv"
+    required: true
+    primary_key: "isic_id"
+    group_key: "lesion_id"
+    required_columns:
+      - "isic_id"
+      - "lesion_id"
+      - "image_type"
+      - "image_manipulation"
+      - "melanocytic"
+      - "sex"
+    optional_columns:
+      - "age_approx"
+      - "anatom_site_general"
+      - "anatom_site_special"
+      - "concomitant_biopsy"
+      - "diagnosis_1"
+      - "diagnosis_2"
+      - "diagnosis_3"
+      - "diagnosis_4"
+      - "diagnosis_confirm_type"
+      - "attribution"
+      - "copyright_license"
+
+  training_supp:
+    filename: "training_supp.csv"
+    required: false
+    primary_key: "isic_id"
+    required_columns:
+      - "isic_id"
+      - "diagnosis_full"
+      - "diagnosis_confirm_type"
+    optional_columns:
+      - "invasion_thickness_interval"
+      - "diagnosis_3"
+      - "diagnosis_4"
+
+joins:
+  join_1:
+    name: "training_gt_to_training_input"
+    description: "Verify lesion_id referential integrity between ground truth and input features"
+    left: "training_gt"
+    right: "training_input"
+    key: "lesion_id"
+
+  join_2:
+    name: "training_input_to_metadata"
+    description: "Verify isic_id referential integrity between training input and master metadata"
+    left: "training_input"
+    right: "metadata"
+    key: "isic_id"
+
+  join_3:
+    name: "training_input_to_training_supp"
+    description: "Verify isic_id referential integrity between training input and supplementary clinical metadata"
+    left: "training_input"
+    right: "training_supp"
+    key: "isic_id"
+
+splitting:
+  group_column: "lesion_id"
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+  seed: 42
+  output_file: "data/splits/lesion_level_splits.csv"
+
+validation:
+  strict: false # CLI --strict sets this to true
+  report_output: "data/processed/validation/validation_report.json"

@@ -38,11 +38,16 @@ def test_required_files_exist():
         repo_root / "README.md",
         repo_root / "setup_colab.ipynb",
         repo_root / "configs" / "baseline.yaml",
+        repo_root / "configs" / "data.yaml",
+        repo_root / "notebooks" / "01_exploratory_data_analysis.ipynb",
         repo_root / "src" / "__init__.py",
         repo_root / "src" / "data" / "__init__.py",
         repo_root / "src" / "data" / "datasets.py",
         repo_root / "src" / "data" / "transforms.py",
         repo_root / "src" / "data" / "samplers.py",
+        repo_root / "src" / "data" / "validator.py",
+        repo_root / "src" / "data" / "eda.py",
+        repo_root / "src" / "data" / "splitting.py",
         repo_root / "src" / "models" / "__init__.py",
         repo_root / "src" / "losses" / "__init__.py",
         repo_root / "src" / "train" / "__init__.py",
@@ -71,7 +76,7 @@ def test_gitignore_protects_sensitive_files():
     gitignore_path = repo_root / ".gitignore"
     content = gitignore_path.read_text(encoding="utf-8")
 
-    patterns = ["data/", "checkpoints/", "*.pt", "*.pth", ".env", "wandb/"]
+    patterns = ["/data/", "checkpoints/", "*.pt", "*.pth", ".env", "wandb/"]
     for pattern in patterns:
         assert pattern in content, f"Missing {pattern} in .gitignore"
 
@@ -88,6 +93,9 @@ def test_package_imports():
 
     assert hasattr(src, "__version__")
     assert callable(src.data.SkinLesionDataset)
+    assert callable(src.data.DatasetValidator)
+    assert callable(src.data.get_dataset_overview)
+    assert callable(src.data.create_lesion_level_splits)
     assert callable(src.models.build_model)
     assert callable(src.losses.build_loss)
     assert callable(src.eval.WandbLogger)

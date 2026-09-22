@@ -1,0 +1,51 @@
+# ==============================================================================
+# SkinCancerTracker - Phase 0 Requirements
+# Medical Computer Vision & Dermatology AI Foundation Pipeline
+#
+# NOTE ON SPECIFICATION §14:
+# Specification §14 was not found in the local repository workspace.
+# In accordance with the Phase 0 Version Policy, dependencies are specified
+# with conservative, reproducible, and cross-platform compatible version ranges.
+# Upstream foundation model constraints:
+#   - PanDerm: Python >= 3.10, PyTorch == 2.4.1 (cu118/cu121), timm >= 0.9.16
+#   - DermFM-Zero: Python >= 3.9, PyTorch >= 1.9.0, transformers, open_clip
+# ==============================================================================
+
+# Core Deep Learning & Tensor Computation
+# For CUDA GPU acceleration, install the appropriate wheel for your CUDA version:
+# Example: pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cu121
+torch>=2.1.0
+torchvision>=0.16.0
+
+# Scientific Computing & Data Processing
+numpy>=1.24.0
+pandas>=2.0.0
+scipy>=1.10.0
+scikit-learn>=1.3.0
+
+# Image Processing & Augmentation
+Pillow>=9.5.0
+opencv-python>=4.8.0
+albumentations>=1.3.1
+
+# Deep Learning Architectures & Pretrained Backbones
+timm>=0.9.16
+transformers>=4.35.0
+huggingface_hub>=0.19.0
+safetensors>=0.4.0
+
+# Experiment Tracking & Configuration
+wandb>=0.16.0
+PyYAML>=6.0.1
+python-dotenv>=1.0.0
+
+# Visualization & Progress
+matplotlib>=3.7.0
+seaborn>=0.12.0
+tqdm>=4.65.0
+
+# Testing, Code Quality & Development
+pytest>=7.4.0
+pytest-cov>=4.1.0
+jupyter>=1.0.0
+ipykernel>=6.25.0

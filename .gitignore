@@ -1,0 +1,104 @@
+# ==============================================================================
+# SkinCancerTracker .gitignore
+# Medical Computer Vision & Dermatology AI Pipeline
+# ==============================================================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+parts/
+var/
+sdist/
+installed.cfg
+.installed.cfg
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# Datasets & Medical Imaging Data (Strictly Excluded from root)
+/data/
+/datasets/
+!src/data/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.h5
+*.hdf5
+*.dcm
+*.nii
+*.nii.gz
+
+# Model Checkpoints & Pretrained Weights
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+*.onnx
+*.engine
+
+# Training & Experiment Outputs
+outputs/
+runs/
+logs/
+experiments/
+
+# Weights & Biases
+wandb/
+
+# Environment Secrets & Credentials
+.env
+.env.*
+!.env.example
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Temporary Files
+*.tmp
+*.temp
+scratch/

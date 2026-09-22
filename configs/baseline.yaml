@@ -1,0 +1,107 @@
+# ==============================================================================
+# SkinCancerTracker - Baseline Experiment Configuration
+# Phase 0 Foundation
+#
+# IMPORTANT — SECTION §9 SPECIFICATION STATUS:
+# Section §9 (Experiment Configuration Table) was not present in the local
+# repository. In accordance with Phase 0 instructions:
+#   - This configuration provides a flexible, robust baseline.
+#   - Placeholders are designated below with [TODO §9: ...] annotations.
+#   - Once the §9 table is provided, specific hyperparameter sweeps,
+#     named experiment variants, and benchmark splits should be populated here.
+# ==============================================================================
+
+experiment_name: "baseline_resnet18_phase0"
+description: "Baseline dermatology classification experiment for pipeline verification"
+
+# Dataset Configuration
+dataset:
+  name: "isic2020"                    # [TODO §9: Replace with benchmark dataset specified in §9, e.g. HAM10000, ISIC2020, PAD-UFES-20]
+  root_dir: "data"                    # Base directory containing dataset files
+  metadata_csv: "data/metadata.csv"   # Path to CSV containing images, labels, and splits
+  image_dir: "data/images"            # Path to folder containing image files
+  num_classes: 2                      # Number of target disease classes (binary melanoma vs benign)
+  image_size: 224                     # Spatial resolution (height, width)
+  splits:
+    train: "train"
+    val: "val"
+    test: "test"
+
+# Dataloader Configuration
+dataloader:
+  batch_size: 32                      # [TODO §9: Verify batch size from §9 table]
+  eval_batch_size: 64
+  num_workers: 4                      # Worker threads for data loading (set to 0 on Windows if multiprocessing issues arise)
+  pin_memory: true
+  drop_last: false
+  use_balanced_sampler: false         # Set to true for severe class imbalance (e.g. rare melanomas)
+
+# Model Architecture Configuration
+model:
+  name: "baseline_resnet18"           # [TODO §9: Specify exact backbone from §9, e.g. 'panderm_base', 'panderm_large', 'dermfm_zero', 'resnet50']
+  pretrained: true                    # Load pretrained ImageNet / foundation weights
+  checkpoint_path: null               # [TODO §9: Path to downloaded PanDerm / DermFM-Zero weights]
+  freeze_backbone: false              # Linear probing vs full fine-tuning
+  dropout_rate: 0.2
+
+# Training Hyperparameters
+training:
+  epochs: 20                          # [TODO §9: Set target epochs from §9]
+  learning_rate: 0.0001               # [TODO §9: Set learning rate from §9]
+  weight_decay: 0.01                  # [TODO §9: Set weight decay from §9]
+  optimizer: "adamw"                  # Optimizer: 'adamw', 'adam', 'sgd'
+  scheduler: "cosine"                 # Learning rate scheduler: 'cosine', 'linear', 'step', 'none'
+  warmup_epochs: 2
+  min_lr: 1.0e-6
+  gradient_accumulation_steps: 1
+  max_grad_norm: 1.0
+  mixed_precision: "fp16"             # Mixed precision: 'fp16', 'bf16', or 'no'
+
+# Loss Function Configuration
+loss:
+  name: "cross_entropy"               # Loss: 'cross_entropy', 'bce_with_logits', 'weighted_cross_entropy'
+  label_smoothing: 0.0
+  class_weights: null                 # Optional list of weights per class for imbalanced loss
+
+# Evaluation Configuration
+evaluation:
+  eval_every_n_epochs: 1
+  save_best_metric: "macro_f1"        # Metric used for best model checkpointing
+  metrics:
+    - "accuracy"
+    - "balanced_accuracy"
+    - "macro_f1"
+    - "auroc"
+    - "precision"
+    - "recall"
+    - "specificity"
+
+# Fairness, Subgroup & Demographic Analysis
+fairness:
+  enabled: true
+  subgroup_keys:
+    - "skin_tone"                     # Fitzpatrick phototype (e.g. Type I to Type VI) or Monk Skin Tone
+    - "age_group"
+    - "sex"
+  log_subgroup_tables: true           # Log Per-skin-tone metrics table to W&B
+  log_error_analysis: true            # Log sample-level error analysis table to W&B
+  require_valid_denominators: true    # Prevent division by zero; distinguish unobserved groups from zero performance
+
+# Weights & Biases (W&B) Tracking Configuration
+wandb:
+  enabled: true                       # Set to false to run completely offline
+  project: "SkinCancerTracker"        # Configurable W&B project name
+  entity: null                        # W&B username or team entity
+  experiment_name: null               # Overridden at runtime or generated
+  mode: "online"                      # 'online', 'offline', or 'disabled'
+  log_model: false                    # Set true to save checkpoint artifacts to W&B
+
+# Reproducibility & Output Paths
+reproducibility:
+  seed: 42                            # Random seed across torch, numpy, python
+  deterministic: true                 # Enforce deterministic CuDNN kernels
+
+output:
+  checkpoint_dir: "checkpoints"       # Directory for saved model weights (.pt, .pth)
+  log_dir: "logs"                     # Directory for text logs and metric histories
+  output_dir: "outputs"               # Directory for serialized predictions and tables

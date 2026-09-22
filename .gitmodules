@@ -1,0 +1,6 @@
+[submodule "external/panderm"]
+	path = external/panderm
+	url = https://github.com/SiyuanYan1/PanDerm.git
+[submodule "external/dermfm-zero"]
+	path = external/dermfm-zero
+	url = https://github.com/SiyuanYan1/DermFM-Zero.git

@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "task_type": "single_label_multiclass",
+  "num_classes": 11,
+  "loss_function": "CrossEntropyLoss",
+  "description": "Standardized 11-class diagnostic label mapping for Phase 2 baseline experiments (Exp-1 and Exp-2).",
+  "classes": [
+    "AKIEC",
+    "BCC",
+    "BEN_OTH",
+    "BKL",
+    "DF",
+    "INF",
+    "MAL_OTH",
+    "MEL",
+    "NV",
+    "SCCKA",
+    "VASC"
+  ],
+  "class_to_idx": {
+    "AKIEC": 0,
+    "BCC": 1,
+    "BEN_OTH": 2,
+    "BKL": 3,
+    "DF": 4,
+    "INF": 5,
+    "MAL_OTH": 6,
+    "MEL": 7,
+    "NV": 8,
+    "SCCKA": 9,
+    "VASC": 10
+  },
+  "idx_to_class": {
+    "0": "AKIEC",
+    "1": "BCC",
+    "2": "BEN_OTH",
+    "3": "BKL",
+    "4": "DF",
+    "5": "INF",
+    "6": "MAL_OTH",
+    "7": "MEL",
+    "8": "NV",
+    "9": "SCCKA",
+    "10": "VASC"
+  }
+}

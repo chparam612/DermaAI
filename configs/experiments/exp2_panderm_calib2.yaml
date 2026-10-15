@@ -1,0 +1,53 @@
+# ==============================================================================
+# Exp-2: PanDerm Fine-Tuning Calibration 2 (ViT-Base) - Scaled LR & Grad Accum
+# ==============================================================================
+
+experiment:
+  name: "exp2-panderm-finetune-v2-calib2"
+  description: "PanDerm ViT calibration 2 (5 epochs: 1 warmup + 4 cosine annealing, lr=2.5e-4 scaled for effective bs=64 via accum=2, clip_grad=1.0)"
+  seed: 42
+
+data:
+  splits_file: "data/splits/lesion_level_splits.csv"
+  image_dir: "data/images"
+  label_mapping: "configs/label_mapping.json"
+  image_size: 224
+  modality: "dermoscopic"
+
+dataloader:
+  num_workers: 0
+  weighted_sampler: true
+
+model:
+  name: "panderm_base"
+  pipeline_type: "panderm"
+  pretrained: true
+  checkpoint_path: "checkpoints/panderm_base.pth"
+
+training:
+  epochs: 5
+  batch_size: 32
+  gradient_accumulation_steps: 2
+  clip_grad: 1.0
+  warmup_epochs: 1
+  monitor: "val_macro_f1"
+
+optimizer:
+  name: "adamw"
+  lr: 2.5e-4
+  weight_decay: 0.05
+  layer_decay: 0.9
+  warmup_epochs: 1
+  min_lr: 1.0e-6
+
+loss:
+  name: "label_smoothing"
+  label_smoothing: 0.1
+
+wandb:
+  project: "SkinCancerTracker"
+  offline: true
+
+output:
+  checkpoint_dir: "checkpoints/exp2_panderm_v2_calib2"
+  results_dir: "results/exp2_panderm_v2_calib2"

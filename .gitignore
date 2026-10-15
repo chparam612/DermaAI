@@ -64,7 +64,9 @@ checkpoints/
 outputs/
 runs/
 logs/
-experiments/
+/experiments/
+results/old/
+results/*_calib*/
 
 # Weights & Biases
 wandb/

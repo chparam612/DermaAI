@@ -1,0 +1,54 @@
+# ==============================================================================
+# Exp-2: PanDerm Fine-Tuning (ViT-Base) - Kaggle GPU Environment (P100 / T4 16GB)
+# ==============================================================================
+
+experiment:
+  name: "exp2-panderm-finetune-v2"
+  description: "PanDerm ViT fine-tuning full 30-epoch run on Kaggle 16GB GPU (dermoscopic modality, v2 recipe)"
+  seed: 42
+
+data:
+  splits_file: "/kaggle/input/datasets/paramveerchaudhary/milk10k-dataset/lesion_level_splits.csv"
+  image_dir: "/kaggle/input/datasets/paramveerchaudhary/milk10k-dataset/images"
+  label_mapping: "configs/label_mapping.json"
+  image_size: 224
+  modality: "dermoscopic"
+
+dataloader:
+  num_workers: 4
+  weighted_sampler: true
+
+model:
+  name: "panderm_base"
+  pipeline_type: "panderm"
+  pretrained: true
+  checkpoint_path: "/kaggle/input/datasets/paramveerchaudhary/panderm-weights/panderm_base.pth"
+
+training:
+  epochs: 30
+  batch_size: 64
+  gradient_accumulation_steps: 1
+  clip_grad: 1.0
+  warmup_epochs: 5
+  monitor: "val_macro_f1"
+
+optimizer:
+  name: "adamw"
+  lr: 2.5e-4
+  weight_decay: 0.05
+  layer_decay: 0.9
+  warmup_epochs: 5
+  min_lr: 1.0e-6
+
+loss:
+  name: "label_smoothing"
+  label_smoothing: 0.1
+
+wandb:
+  project: "SkinCancerTracker"
+  offline: false
+
+output:
+  checkpoint_dir: "/kaggle/working/checkpoints/exp2_panderm_v2"
+  results_dir: "/kaggle/working/results/exp2_panderm_v2"
+  max_keep: 2

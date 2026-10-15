@@ -242,6 +242,27 @@ $$\hat{p}_k = \sigma(z)_k = \frac{\exp(z_k)}{\sum_{j=1}^K \exp(z_j)}, \quad \hat
 
 ---
 
+### Formula 1.8: Logit-Adjusted Cross-Entropy Loss (Menon et al., ICLR 2021)
+
+#### 1. Mathematical Notation
+Train-time logit adjustment:
+$$\mathcal{L}_{\text{LA}}(z, y) = -\log \frac{\exp(z_y + \tau \log \pi_y)}{\sum_{k=1}^K \exp(z_k + \tau \log \pi_k)}$$
+Combined with label smoothing $\epsilon$:
+$$\mathcal{L}_{\text{LA-LS}}(z, y) = (1 - \epsilon) \cdot \left[ -\log \frac{\exp(z_y + \tau \log \pi_y)}{\sum_k \exp(z_k + \tau \log \pi_k)} \right] + \frac{\epsilon}{K} \sum_{j=1}^K \left[ -\log \frac{\exp(z_j + \tau \log \pi_j)}{\sum_k \exp(z_k + \tau \log \pi_k)} \right]$$
+Post-hoc (inference-time) logit adjustment:
+$$\hat{y}_{\text{post}} = \arg\max_{k \in \{1, \dots, K\}} \Big( z_k - \tau \cdot \log \pi_k \Big)$$
+where $\pi_k = \frac{N_{k, \text{train}}}{N_{\text{train}}}$ is the empirical training class prior.
+
+#### 2. Exact Implementation Location
+- **Loss Module**: [`src/losses/classification.py`](file:///C:/Users/prtv1/OneDrive/Attachments/Desktop/SkinCancerTracker/src/losses/classification.py) (`LogitAdjustedCrossEntropy`)
+- **Post-Hoc Runner**: [`scripts/run_exp3a_post_hoc.py`](file:///C:/Users/prtv1/OneDrive/Attachments/Desktop/SkinCancerTracker/scripts/run_exp3a_post_hoc.py)
+- **Kaggle Execution Script**: [`kaggle/run_exp3b_panderm_logit_adj.py`](file:///C:/Users/prtv1/OneDrive/Attachments/Desktop/SkinCancerTracker/kaggle/run_exp3b_panderm_logit_adj.py)
+
+#### 3. Mathematical Purpose
+Standard cross-entropy minimizes empirical risk, biasing predictions heavily toward majority classes (e.g. BCC). Logit adjustment enforces an additive margin $\tau \log(\pi_k / \pi_y)$ proportional to the class imbalance ratio. When $y$ is a rare malignancy (`MAL_OTH`) and $k$ is common (`BCC`), $\tau \log(\pi_k / \pi_y) > 0$ forces the model to learn larger geometric representations for minority classes, achieving Fisher consistency for balanced error minimization.
+
+---
+
 # CATEGORY 2: Implemented Internally by External Libraries
 
 ---

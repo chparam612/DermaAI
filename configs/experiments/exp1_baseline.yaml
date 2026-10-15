@@ -1,0 +1,43 @@
+# ==============================================================================
+# Exp-1: Standard CNN Baseline Configuration (ResNet-50)
+# ==============================================================================
+
+experiment:
+  name: "exp1-resnet50-baseline"
+  description: "Standard CNN baseline using ResNet-50 ImageNet-pretrained on 11 diagnostic classes (dermoscopic modality)"
+  seed: 42
+
+data:
+  splits_file: "data/splits/lesion_level_splits.csv"
+  image_dir: "data/images"
+  label_mapping: "configs/label_mapping.json"
+  image_size: 224
+  modality: "dermoscopic"
+
+model:
+  name: "resnet50"
+  pipeline_type: "baseline"
+  pretrained: true
+  dropout_rate: 0.2
+
+training:
+  epochs: 30
+  batch_size: 32
+  clip_grad: 1.0
+
+optimizer:
+  name: "adamw"
+  lr: 1.0e-4
+  weight_decay: 0.01
+
+loss:
+  name: "class_balanced_ce"
+  label_smoothing: 0.0
+
+wandb:
+  project: "SkinCancerTracker"
+  offline: true
+
+output:
+  checkpoint_dir: "checkpoints/exp1_baseline"
+  results_dir: "results/exp1_baseline"

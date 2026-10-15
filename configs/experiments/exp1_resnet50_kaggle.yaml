@@ -1,0 +1,51 @@
+# ==============================================================================
+# Exp-1: Standard CNN Baseline (ResNet-50) - Kaggle GPU Environment
+# ==============================================================================
+
+experiment:
+  name: "exp1-resnet50-baseline-kaggle"
+  description: "Standard CNN baseline using ResNet-50 ImageNet-pretrained full 30-epoch run on Kaggle GPU"
+  seed: 42
+
+data:
+  splits_file: "/kaggle/input/datasets/paramveerchaudhary/milk10k-dataset/lesion_level_splits.csv"
+  image_dir: "/kaggle/input/datasets/paramveerchaudhary/milk10k-dataset/images"
+  label_mapping: "configs/label_mapping.json"
+  image_size: 224
+  modality: "dermoscopic"
+
+dataloader:
+  num_workers: 4
+  weighted_sampler: false
+
+model:
+  name: "resnet50"
+  pipeline_type: "baseline"
+  pretrained: true
+  dropout_rate: 0.2
+
+training:
+  epochs: 30
+  batch_size: 64
+  gradient_accumulation_steps: 1
+  clip_grad: 1.0
+  warmup_epochs: 0
+  monitor: "val_macro_f1"
+
+optimizer:
+  name: "adamw"
+  lr: 1.0e-4
+  weight_decay: 0.01
+
+loss:
+  name: "class_balanced_ce"
+  label_smoothing: 0.0
+
+wandb:
+  project: "SkinCancerTracker"
+  offline: false
+
+output:
+  checkpoint_dir: "/kaggle/working/checkpoints/exp1_resnet50"
+  results_dir: "/kaggle/working/results/exp1_resnet50"
+  max_keep: 2

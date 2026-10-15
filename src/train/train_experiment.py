@@ -220,10 +220,19 @@ def run_experiment(
         weight = compute_class_weights(train_labels, num_classes=num_classes).to(device)
         logger.info(f"Using class-balanced weights: {weight.tolist()}")
 
+    priors = None
+    if loss_name.strip().lower() in ("logit_adjusted", "logit_adjustment", "la", "la_ce"):
+        train_labels = train_loader.dataset.get_labels()
+        counts = np.bincount(train_labels, minlength=num_classes)
+        priors = (counts / np.sum(counts)).astype(np.float32)
+        logger.info(f"Using train-time class priors for logit adjustment: {priors.tolist()}")
+
     criterion = get_loss_function(
         loss_name=loss_name,
         label_smoothing=loss_cfg.get("label_smoothing", 0.0),
         weight=weight,
+        priors=priors,
+        tau=float(loss_cfg.get("tau", 1.0)),
     )
 
     if smoke_test:

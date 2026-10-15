@@ -1,0 +1,52 @@
+# ==============================================================================
+# Exp-2: PanDerm Fine-Tuning Calibration Run (ViT-Base) - v2 Corrected Schedule
+# ==============================================================================
+
+experiment:
+  name: "exp2-panderm-finetune-v2-calib"
+  description: "PanDerm ViT fine-tuning 5-epoch calibration run (1 warmup + 4 cosine annealing) for sanity check"
+  seed: 42
+
+data:
+  splits_file: "data/splits/lesion_level_splits.csv"
+  image_dir: "data/images"
+  label_mapping: "configs/label_mapping.json"
+  image_size: 224
+  modality: "dermoscopic"
+
+dataloader:
+  num_workers: 0
+  weighted_sampler: true
+
+model:
+  name: "panderm_base"
+  pipeline_type: "panderm"
+  pretrained: true
+  checkpoint_path: "checkpoints/panderm_base.pth"
+
+training:
+  epochs: 5
+  batch_size: 32
+  clip_grad: 1.0
+  warmup_epochs: 1
+  monitor: "val_macro_f1"
+
+optimizer:
+  name: "adamw"
+  lr: 5.0e-4
+  weight_decay: 0.05
+  layer_decay: 0.9
+  warmup_epochs: 1
+  min_lr: 1.0e-6
+
+loss:
+  name: "label_smoothing"
+  label_smoothing: 0.1
+
+wandb:
+  project: "SkinCancerTracker"
+  offline: true
+
+output:
+  checkpoint_dir: "checkpoints/exp2_panderm_v2_calib"
+  results_dir: "results/exp2_panderm_v2_calib"

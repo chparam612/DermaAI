@@ -48,9 +48,11 @@ def build_ablation_table(
     exp2_summary_path: Path,
     output_dir: Path,
     exp2_v2_summary_path: Optional[Path] = None,
+    exp3a_summary_path: Optional[Path] = None,
+    exp3b_summary_path: Optional[Path] = None,
     strict: bool = False,
 ) -> pd.DataFrame:
-    """Compile ablation table from Exp-1 and Exp-2 metrics."""
+    """Compile ablation table from Exp-1, Exp-2, Exp-3a, and Exp-3b metrics."""
     records = []
 
     # Exp-1
@@ -127,10 +129,55 @@ def build_ablation_table(
                 "macro_f1": round(float(f1), 4),
                 "malignant_recall": round(float(mal_rec), 4),
                 "auroc": auroc_str,
-                "notes": "v2 corrected (weighted sampler, layer_decay=0.9, val_macro_f1 checkpointing)",
+                "notes": "v2 corrected (weighted sampler, layer_decay=0.9, val_macro_f1 checkpointing; selection on val only)",
             })
         elif strict:
             raise FileNotFoundError(f"Could not find Exp-2 (v2) metrics at {exp2_v2_summary_path}")
+
+    # Exp-3a: Post-Hoc Logit Adjustment (Menon et al., NeurIPS 2020)
+    if exp3a_summary_path and (exp3a_summary_path.is_file() or (exp3a_summary_path.parent / "metrics.json").is_file()):
+        d3a = load_metrics_from_summary(exp3a_summary_path)
+        if d3a:
+            m3a = d3a.get("test_overall", {})
+            acc = m3a.get("accuracy", 0.0)
+            f1 = m3a.get("macro_f1", 0.0)
+            mal_rec = m3a.get("malignant_recall", 0.0)
+            auroc = m3a.get("macro_auroc", 0.0)
+            mal_auroc = m3a.get("malignant_auroc", 0.0)
+            auroc_str = f"{auroc:.4f} (mal: {mal_auroc:.4f})" if mal_auroc > 0 else f"{auroc:.4f}"
+            tau_val = d3a.get("optimal_tau", 0.10)
+            records.append({
+                "exp_id": "Exp-3a",
+                "model": "PanDerm ViT-Base",
+                "modality": "Dermoscopic",
+                "accuracy": round(float(acc), 4),
+                "macro_f1": round(float(f1), 4),
+                "malignant_recall": round(float(mal_rec), 4),
+                "auroc": auroc_str,
+                "notes": f"NULL result (Delta F1 CI includes 0; double-corrects resampled model; MEL +1.49% is 1 lesion; tau*={tau_val:.2f})",
+            })
+
+    # Exp-3b: Train-Time Logit Adjustment (Menon et al., ICLR 2021)
+    if exp3b_summary_path and (exp3b_summary_path.is_file() or (exp3b_summary_path.parent / "metrics.json").is_file()):
+        d3b = load_metrics_from_summary(exp3b_summary_path)
+        if d3b:
+            m3b = d3b.get("test_overall", {})
+            acc = m3b.get("accuracy", 0.0)
+            f1 = m3b.get("macro_f1", 0.0)
+            mal_rec = m3b.get("malignant_recall", 0.0)
+            auroc = m3b.get("macro_auroc", 0.0)
+            mal_auroc = m3b.get("malignant_auroc", 0.0)
+            auroc_str = f"{auroc:.4f} (mal: {mal_auroc:.4f})" if mal_auroc > 0 else f"{auroc:.4f}"
+            records.append({
+                "exp_id": "Exp-3b",
+                "model": "PanDerm ViT-Base",
+                "modality": "Dermoscopic",
+                "accuracy": round(float(acc), 4),
+                "macro_f1": round(float(f1), 4),
+                "malignant_recall": round(float(mal_rec), 4),
+                "auroc": auroc_str,
+                "notes": "Train-time logit adjustment loss (tau=1.0, uniform shuffle, LS=0.1; full 30-epoch Kaggle run)",
+            })
 
     df = pd.DataFrame(records, columns=ABLATION_COLUMNS)
 
@@ -179,8 +226,20 @@ def main():
     parser.add_argument(
         "--exp2-v2-dir",
         type=str,
+        default="results/exp2_panderm_v2",
+        help="Directory containing Exp-2 (v2) results (default: results/exp2_panderm_v2)",
+    )
+    parser.add_argument(
+        "--exp3a-dir",
+        type=str,
+        default="results/exp3a_panderm_posthoc",
+        help="Directory containing Exp-3a results (default: results/exp3a_panderm_posthoc)",
+    )
+    parser.add_argument(
+        "--exp3b-dir",
+        type=str,
         default=None,
-        help="Directory containing Exp-2 (v2) results (e.g. results/exp2_panderm_v2 or /kaggle/working/results/exp2_panderm_v2)",
+        help="Directory containing Exp-3b results (e.g. results/exp3b_panderm_logit_adj)",
     )
     parser.add_argument(
         "--output-dir",
@@ -199,11 +258,21 @@ def main():
     exp1_summary = Path(args.exp1_dir) / "summary_metrics.json"
     exp2_summary = Path(args.exp2_dir) / "summary_metrics.json"
     exp2_v2_summary = (Path(args.exp2_v2_dir) / "summary_metrics.json") if args.exp2_v2_dir else None
+    exp3a_summary = (Path(args.exp3a_dir) / "summary_metrics.json") if args.exp3a_dir else None
+    exp3b_summary = (Path(args.exp3b_dir) / "summary_metrics.json") if args.exp3b_dir else None
     output_dir = Path(args.output_dir)
 
-    df = build_ablation_table(exp1_summary, exp2_summary, output_dir, exp2_v2_summary_path=exp2_v2_summary, strict=args.strict)
+    df = build_ablation_table(
+        exp1_summary,
+        exp2_summary,
+        output_dir,
+        exp2_v2_summary_path=exp2_v2_summary,
+        exp3a_summary_path=exp3a_summary,
+        exp3b_summary_path=exp3b_summary,
+        strict=args.strict,
+    )
     print("\n" + "=" * 70)
-    print("PHASE 2 ABLATION TABLE")
+    print("SKINCANCERTRACKER ABLATION TABLE")
     print("=" * 70)
     print(df.to_string(index=False))
     print("=" * 70)

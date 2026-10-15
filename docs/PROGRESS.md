@@ -2,8 +2,8 @@
 
 ## Session & Phase Overview
 - **Project**: SkinCancerTracker (Multimodal Dermatology AI Benchmark on MILK10k)
-- **Current State**: Phase 2 Close-Out Complete. Ready for Phase 3 (Logit Adjustment).
-- **Environment**: Local PC (CPU-only for analysis, evaluation, docs, API, tests) + Kaggle GPU (T4/P100 16GB VRAM for heavy training).
+- **Current State**: Phase 3 Logit Adjustment (Exp-3a Complete & Exp-3b Kaggle script ready).
+- **Environment**: Local PC (CPU/RTX 2050 GPU for evaluation, tests, docs) + Kaggle GPU (T4/P100 16GB VRAM for heavy training).
 
 ---
 
@@ -41,18 +41,47 @@
      - Weighted random sampler, layer-wise LR decay (0.9), AdamW lr=2.5e-4, label smoothing 0.1, `val_macro_f1` checkpointing.
      - Best epoch: 26 / 30.
      - Test metrics (N=786): Top-1 Acc: 0.6438, Balanced Acc: 0.3934, Macro-F1: 0.3925, Weighted F1: 0.6469, Malignant Recall: 0.8902, Malignant AUROC: 0.8022.
-- **Disaggregated Fairness & Safety Findings**:
-  - Malignant Sensitivity: 89.02% (519 / 583 detected).
-  - Malignant FNR (Critical Missed Cancers): 10.98% (64 false negatives). Missed malignancies collapse primarily into benign BKL (33 cases) and NV (20 cases).
-  - 3-Bucket Fairness: Dark (Tones 0-1, N=12, LOW-CONFIDENCE, Mal FNR 16.67%), Medium (Tones 2-3, N=558, Mal FNR 10.60%), Light (Tones 4-5, N=216, Mal FNR 11.73%). 3-Bucket FNR Disparity: 6.06%.
-  - Tone 3 Dissection (N=486, 61.8% of test set): Low Macro-F1 (0.2718) driven by extreme BCC dominance (53.50%) and 0.0000 recall across all 5 rare tail classes (`BEN_OTH`, `DF`, `INF`, `MAL_OTH`, `VASC`).
-- **Overfitting Dynamics**:
-  - Train Acc: 88.69% vs Val Acc: 62.09% (26.6% generalization gap).
-  - Train Loss: 0.7589 vs Val Loss: 1.4394 (loss gap: +0.6805).
-- **Deliverables**:
-  - `docs/phase2_baseline_experiments.md`
-  - `results/ablation_table.csv` & `results/ablation_table.md`
-  - `scripts/analyze_exp2_results.py`
-  - `kaggle/run_exp1_resnet50.py` & `configs/experiments/exp1_resnet50_kaggle.yaml`
 - **Git Commit**: `b34c03e` ("Phase 2: Exp-2 PanDerm baseline evaluated and documented")
-- **Next Action**: Phase 3 Logit Adjustment (Exp-3a post-hoc locally on CPU + Exp-3b train-time Kaggle script).
+
+### Phase 3: Logit Adjustment for Extreme Class Imbalance & Fairness
+- **Status**: Completed (Exp-3a Evaluated as NULL result; Exp-3b Kaggle Script Redesigned & Smoke-Tested)
+- **Theoretical Basis**: Menon et al., *"Long-Tail Learning via Logit Adjustment"*, ICLR 2021 (arXiv:2007.07314).
+- **Runs Completed & Evaluated**:
+  1. **Exp-3a: Post-Hoc Logit Adjustment**:
+     - Evaluated with frozen PanDerm ViT-Base (`best_model.pt`).
+     - Hyperparameter $\tau$ tuned exclusively on validation split ($N=786$) sweeping $[0.0, 2.0]$; optimal $\tau^* = 0.100$ selected by `val_macro_f1` ($0.4117$, $+1.28\%$ over baseline).
+     - Test metrics ($N=786$): Top-1 Acc: 0.6361, Balanced Acc: 0.3921, Macro-F1: 0.3883, Weighted F1: 0.6426, Malignant Recall: 0.8816, Malignant AUROC: 0.7964.
+     - Paired 95% bootstrap CIs ($B=2,000$):
+       - $\Delta \text{Macro-F1}$: $-0.0042$ $[-0.010, +0.001]$ (**NULL result**, CI spans 0).
+       - $\Delta \text{Balanced Acc}$: $-0.0014$ $[-0.006, +0.004]$ (**NULL result**, CI spans 0).
+       - Melanoma (`MEL`) Recall: $70.15\%$ vs $68.66\%$ ($+1.49\%$, exactly **ONE** flipped lesion out of 67; 95% CI $[+0.000, +0.030]$).
+       - 3-Bucket Malignant FNR Disparity: numerical gap shifted from $6.06\%$ to $4.94\%$; **not statistically reliable** because Dark bucket has $n=12$ where a single flipped lesion moves FNR by $\sim 8.3\%$.
+     - Diagnostic: Exp-2 v2 was fine-tuned using `WeightedRandomSampler` (balanced batches $\approx 1/11$ per class). Post-hoc logit adjustment with the empirical imbalance prior double-corrects an already-resampled model. Latent feature representation collapse is not established.
+  2. **Exp-3b: Train-Time Logit Adjustment (Loss-Level)**:
+     - Implemented `LogitAdjustedCrossEntropy` with label smoothing in `src/losses/classification.py`.
+     - 6 unit tests passing in `tests/test_losses.py` (51 total repository tests passing).
+     - Standalone Kaggle execution script `kaggle/run_exp3b_panderm_logit_adj.py` and configuration `configs/experiments/exp3b_panderm_logit_adj_kaggle.yaml`.
+     - 1-batch smoke test gate verified passing with 0 errors.
+- **Deliverables**:
+  - `docs/phase3_logit_adjustment.md`
+  - `docs/technical_reference/ALL_FORMULAS_AND_MATHEMATICS.md` (Formula 1.8)
+  - `results/exp3a_panderm_posthoc/` (predictions_val.csv, predictions_test.csv, metrics.json, summary_metrics.json, tau_sweep_validation.json, paired_bootstrap_comparison.json)
+  - `results/ablation_table.csv` & `results/ablation_table.md`
+  - `src/losses/classification.py` & `src/losses/__init__.py`
+  - `tests/test_losses.py`, `tests/test_raw_logits_evaluation.py`
+  - `kaggle/run_exp3b_panderm_logit_adj.py` & `configs/experiments/exp3b_panderm_logit_adj_kaggle.yaml`
+
+---
+
+### Phase 4: Hierarchical Loss & Two-Stage Classification (In Progress)
+- **Status**: Phase 4.1 Prepared (Code & Unit Tests Verified; No Kaggle Run)
+- **Phase 4.1: Asymmetric Hierarchical Cost Loss**:
+  - Implemented `AsymmetricHierarchicalCostLoss` and `build_asymmetric_cost_matrix` in `src/losses/hierarchical.py`.
+  - Clinical error penalties: $c_{\text{fn}} = 5.0$ (Malignant $\to$ Benign, missed cancer), $c_{\text{fp}} = 1.5$ (Benign $\to$ Malignant), $c_{\text{within\_mal}} = 1.0$, $c_{\text{within\_ben}} = 0.5$.
+  - 7 unit tests verified in `tests/test_hierarchical_loss.py`.
+- **Master Plan Roadmap**:
+  - **Phase 4**: Hierarchical Loss + Two-Stage Classification (TSC)
+  - **Phase 5**: Calibration & Reliability Triage
+  - **Phase 6**: Multimodal Dual-Image Fusion (Dermoscopic + Clinical Close-up)
+- **Next Action**: Execute Exp-3b and Exp-1 30-epoch runs on Kaggle GPU.
+

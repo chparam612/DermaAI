@@ -16,6 +16,7 @@ from sklearn.metrics import (
     f1_score,
     precision_score,
     recall_score,
+    roc_auc_score,
 )
 
 DEFAULT_CLASSES = [
@@ -23,18 +24,24 @@ DEFAULT_CLASSES = [
     "MAL_OTH", "MEL", "NV", "SCCKA", "VASC"
 ]
 
+DEFAULT_MALIGNANT_CLASSES = ["BCC", "MEL", "SCCKA", "MAL_OTH", "AKIEC"]
+
 
 def calculate_classification_metrics(
     y_true: Union[np.ndarray, List[int]],
     y_pred: Union[np.ndarray, List[int]],
+    y_prob: Optional[np.ndarray] = None,
     class_names: Optional[List[str]] = None,
+    malignant_classes: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Calculate aggregate and per-class classification metrics.
 
     Args:
         y_true: Array of true class integer labels.
         y_pred: Array of predicted class integer labels.
+        y_prob: Optional array of predicted class probabilities (N, num_classes).
         class_names: List of class names ordered by integer index.
+        malignant_classes: List of classes considered malignant for sensitivity/AUROC.
 
     Returns:
         Dictionary containing overall and per-class metrics.
@@ -42,6 +49,7 @@ def calculate_classification_metrics(
     y_true = np.asarray(y_true)
     y_pred = np.asarray(y_pred)
     classes = class_names or DEFAULT_CLASSES
+    mal_classes = malignant_classes or DEFAULT_MALIGNANT_CLASSES
 
     # Aggregate metrics
     acc = float(accuracy_score(y_true, y_pred))
@@ -65,6 +73,42 @@ def calculate_classification_metrics(
             "support": int(np.sum(y_true == i)),
         }
 
+    # Malignant group metrics
+    mal_indices = [i for i, name in enumerate(classes) if name in mal_classes]
+    y_true_binary = np.isin(y_true, mal_indices).astype(int)
+    y_pred_binary = np.isin(y_pred, mal_indices).astype(int)
+
+    malignant_recall = float(recall_score(y_true_binary, y_pred_binary, zero_division=0))
+    malignant_precision = float(precision_score(y_true_binary, y_pred_binary, zero_division=0))
+    malignant_f1 = float(f1_score(y_true_binary, y_pred_binary, zero_division=0))
+
+    # AUROC computation
+    macro_auroc = 0.0
+    malignant_auroc = 0.0
+
+    if y_prob is not None:
+        y_prob = np.asarray(y_prob, dtype=np.float64)
+        sums = np.sum(y_prob, axis=1, keepdims=True)
+        sums[sums == 0] = 1.0
+        y_prob_norm = y_prob / sums
+
+        # Macro AUROC
+        try:
+            present_classes = np.unique(y_true)
+            if len(present_classes) > 1:
+                labels_arg = list(range(len(classes))) if len(present_classes) == len(classes) else present_classes
+                macro_auroc = float(roc_auc_score(y_true, y_prob_norm, multi_class="ovr", average="macro", labels=labels_arg))
+        except Exception:
+            macro_auroc = 0.0
+
+        # Malignant-vs-Rest AUROC
+        try:
+            if len(np.unique(y_true_binary)) > 1 and len(mal_indices) > 0:
+                y_prob_mal = np.sum(y_prob_norm[:, mal_indices], axis=1)
+                malignant_auroc = float(roc_auc_score(y_true_binary, y_prob_mal))
+        except Exception:
+            malignant_auroc = 0.0
+
     cm = confusion_matrix(y_true, y_pred, labels=list(range(len(classes))))
 
     return {
@@ -74,6 +118,12 @@ def calculate_classification_metrics(
         "weighted_f1": weighted_f1,
         "macro_precision": macro_precision,
         "macro_recall": macro_recall,
+        "macro_auroc": macro_auroc,
+        "malignant_recall": malignant_recall,
+        "malignant_precision": malignant_precision,
+        "malignant_f1": malignant_f1,
+        "malignant_auroc": malignant_auroc,
+        "malignant_classes": mal_classes,
         "per_class": per_class_dict,
         "confusion_matrix": cm.tolist(),
         "total_samples": len(y_true),

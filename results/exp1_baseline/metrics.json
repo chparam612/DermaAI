@@ -1,47 +1,59 @@
 {
   "overall_metrics": {
-    "accuracy": 0.125,
-    "balanced_accuracy": 0.04591836734693877,
-    "macro_f1": 0.0408983451536643,
-    "weighted_f1": 0.15462470449172575,
-    "macro_precision": 0.0618421052631579,
-    "macro_recall": 0.03214285714285714,
+    "accuracy": 0.5190839694656488,
+    "balanced_accuracy": 0.33380465444893365,
+    "macro_f1": 0.2869258881340858,
+    "weighted_f1": 0.5397745839095384,
+    "macro_precision": 0.3618363242554914,
+    "macro_recall": 0.33380465444893365,
+    "macro_auroc": 0.7757542256779829,
+    "malignant_recall": 0.8867924528301887,
+    "malignant_precision": 0.8406504065040651,
+    "malignant_f1": 0.8631051752921536,
+    "malignant_auroc": 0.7548521745008407,
+    "malignant_classes": [
+      "BCC",
+      "MEL",
+      "SCCKA",
+      "MAL_OTH",
+      "AKIEC"
+    ],
     "per_class": {
       "AKIEC": {
-        "f1": 0.0,
-        "recall": 0.0,
-        "precision": 0.0,
-        "support": 8
+        "f1": 0.28708133971291866,
+        "recall": 0.5555555555555556,
+        "precision": 0.1935483870967742,
+        "support": 54
       },
       "BCC": {
-        "f1": 0.2978723404255319,
-        "recall": 0.25,
-        "precision": 0.3684210526315789,
-        "support": 28
+        "f1": 0.6656534954407295,
+        "recall": 0.5601023017902813,
+        "precision": 0.8202247191011236,
+        "support": 391
       },
       "BEN_OTH": {
-        "f1": 0.0,
-        "recall": 0.0,
-        "precision": 0.0,
-        "support": 0
+        "f1": 0.2222222222222222,
+        "recall": 0.125,
+        "precision": 1.0,
+        "support": 8
       },
       "BKL": {
-        "f1": 0.0,
-        "recall": 0.0,
-        "precision": 0.0,
-        "support": 4
+        "f1": 0.0975609756097561,
+        "recall": 0.075,
+        "precision": 0.13953488372093023,
+        "support": 80
       },
       "DF": {
         "f1": 0.0,
         "recall": 0.0,
         "precision": 0.0,
-        "support": 0
+        "support": 5
       },
       "INF": {
         "f1": 0.0,
         "recall": 0.0,
         "precision": 0.0,
-        "support": 0
+        "support": 5
       },
       "MAL_OTH": {
         "f1": 0.0,
@@ -50,86 +62,112 @@
         "support": 2
       },
       "MEL": {
-        "f1": 0.0,
-        "recall": 0.0,
-        "precision": 0.0,
-        "support": 4
+        "f1": 0.5357142857142857,
+        "recall": 0.44776119402985076,
+        "precision": 0.6666666666666666,
+        "support": 67
       },
       "NV": {
-        "f1": 0.0,
-        "recall": 0.0,
-        "precision": 0.0,
-        "support": 4
+        "f1": 0.7272727272727273,
+        "recall": 0.7272727272727273,
+        "precision": 0.7272727272727273,
+        "support": 99
       },
       "SCCKA": {
-        "f1": 0.1111111111111111,
-        "recall": 0.07142857142857142,
-        "precision": 0.25,
-        "support": 14
+        "f1": 0.43317972350230416,
+        "recall": 0.6811594202898551,
+        "precision": 0.31756756756756754,
+        "support": 69
       },
       "VASC": {
-        "f1": 0.0,
-        "recall": 0.0,
-        "precision": 0.0,
-        "support": 0
+        "f1": 0.1875,
+        "recall": 0.5,
+        "precision": 0.11538461538461539,
+        "support": 6
       }
     },
     "confusion_matrix": [
       [
-        0,
-        5,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        2
-      ],
-      [
-        1,
-        7,
+        30,
+        11,
         0,
         2,
-        1,
-        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        10,
+        1
+      ],
+      [
+        73,
+        219,
+        0,
+        22,
         1,
         0,
         0,
         3,
-        12
+        3,
+        60,
+        10
       ],
       [
         0,
         0,
+        1,
+        3,
+        0,
+        1,
         0,
         0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
+        1,
+        1,
+        1
       ],
       [
+        22,
+        17,
+        0,
+        6,
+        0,
+        0,
+        0,
+        4,
+        7,
+        23,
+        1
+      ],
+      [
+        1,
+        3,
         0,
         0,
         0,
         0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
         2,
         0,
+        1,
         0,
         0,
         0,
         0,
-        2
+        0,
+        1,
+        0
       ],
       [
-        0,
-        0,
+        1,
+        1,
         0,
         0,
         0,
@@ -141,49 +179,49 @@
         0
       ],
       [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
-      ],
-      [
-        0,
+        6,
         2,
         0,
+        5,
         0,
         0,
         0,
-        0,
-        0,
-        0,
-        0,
-        0
+        30,
+        16,
+        3,
+        5
       ],
       [
+        5,
+        6,
+        0,
+        3,
+        0,
+        0,
+        0,
+        7,
+        72,
+        3,
+        3
+      ],
+      [
+        15,
+        5,
+        0,
+        0,
+        0,
+        0,
         0,
         1,
         0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        2
+        47,
+        1
       ],
       [
         1,
+        1,
         0,
-        0,
-        0,
+        1,
         0,
         0,
         0,
@@ -191,71 +229,45 @@
         0,
         0,
         3
-      ],
-      [
-        3,
-        4,
-        0,
-        0,
-        1,
-        1,
-        0,
-        0,
-        0,
-        1,
-        4
-      ],
-      [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
       ]
     ],
-    "total_samples": 64
+    "total_samples": 786
   },
   "subgroup_fairness": {
     "subgroups": {
       "skin_tone_1": {
-        "sample_count": 2,
-        "accuracy": 0.0,
-        "balanced_accuracy": 0.0,
-        "macro_f1": 0.0
-      },
-      "skin_tone_2": {
-        "sample_count": 4,
+        "sample_count": 12,
         "accuracy": 0.5,
         "balanced_accuracy": 0.5,
-        "macro_f1": 0.25
+        "macro_f1": 0.3589285714285714
+      },
+      "skin_tone_2": {
+        "sample_count": 72,
+        "accuracy": 0.5,
+        "balanced_accuracy": 0.5048732943469786,
+        "macro_f1": 0.2976452119309262
       },
       "skin_tone_3": {
-        "sample_count": 36,
-        "accuracy": 0.05555555555555555,
-        "balanced_accuracy": 0.02806122448979592,
-        "macro_f1": 0.027705627705627706
+        "sample_count": 486,
+        "accuracy": 0.5329218106995884,
+        "balanced_accuracy": 0.3168248986654962,
+        "macro_f1": 0.3075473319620397
       },
       "skin_tone_4": {
-        "sample_count": 14,
-        "accuracy": 0.14285714285714285,
-        "balanced_accuracy": 0.08333333333333333,
-        "macro_f1": 0.07692307692307693
+        "sample_count": 153,
+        "accuracy": 0.5032679738562091,
+        "balanced_accuracy": 0.34455262611867354,
+        "macro_f1": 0.27377372001432154
       },
       "skin_tone_5": {
-        "sample_count": 8,
-        "accuracy": 0.25,
-        "balanced_accuracy": 0.16666666666666666,
-        "macro_f1": 0.09523809523809523
+        "sample_count": 63,
+        "accuracy": 0.47619047619047616,
+        "balanced_accuracy": 0.45970017636684307,
+        "macro_f1": 0.25747474747474747
       }
     },
-    "accuracy_disparity": 0.0873015873015873,
-    "balanced_accuracy_disparity": 0.05527210884353741,
+    "accuracy_disparity": 0.056731334509112274,
+    "balanced_accuracy_disparity": 0.1880483956814824,
     "evaluated_subgroups_count": 5
   }
 }

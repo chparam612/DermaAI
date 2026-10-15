@@ -44,10 +44,14 @@ def evaluate_model(
         model, test_loader, device=device, class_names=class_names, max_batches=max_batches
     )
 
+    prob_cols = [f"prob_{c}" for c in (class_names or []) if f"prob_{c}" in df_preds.columns]
+    y_prob = df_preds[prob_cols].values if len(prob_cols) > 0 else None
+
     # Compute metrics
     metrics = calculate_classification_metrics(
         y_true=df_preds["true_label"].values,
         y_pred=df_preds["pred_label"].values,
+        y_prob=y_prob,
         class_names=class_names,
     )
 

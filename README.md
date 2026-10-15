@@ -253,14 +253,12 @@ pytest -v
 
 ---
 
-## 11. Known Limitations & Unresolved Items
+## 12. Phase 2 — Baseline Experiments (Exp-1 & Exp-2)
 
-1. **Section §9 Specification Status**:
-   - The formal experiment configuration table referenced in specification §9 was not present in the workspace.
-   - Sensible baseline parameters are configured in `configs/baseline.yaml` and clearly designated with `[TODO §9: ...]`.
-   - Exact benchmark splits, foundation model checkpoints, and target hyperparameter sweeps will be integrated once §9 is supplied.
-2. **Section §14 Dependency Versions Status**:
-   - Dependency versions from specification §14 were not present in the workspace.
-   - Conservative, cross-compatible versions were established across `requirements.txt` and `environment.yml` based on verified upstream requirements for PanDerm and DermFM-Zero.
-3. **Submodule Source Modifications**:
-   - Neither PanDerm nor DermFM-Zero source code should be edited directly in `external/`. Upstream functionality will be wrapped via adapters in `src/models/` during Phase 1.
+Phase 2 establishes baseline single-modality dermoscopic classification benchmarks on MILK10k for downstream multimodal comparison:
+
+- **Exp-1 (`scripts/train_exp1_baseline.py`)**: ResNet-50 ImageNet-pretrained baseline trained with class-balanced Cross-Entropy ($w_c = \frac{N}{C \cdot N_c}$).
+- **Exp-2 (`scripts/train_exp2_panderm.py`)**: PanDerm ViT-Base fine-tuned using the official recipe from `external/panderm/classification/run_class_finetuning.py`.
+- **Ablation Generation (`scripts/generate_ablation_table.py`)**: Compiles test metrics into `results/ablation_table.csv` and `results/ablation_table.md`.
+
+For detailed documentation, hyperparameter tables, W&B run IDs, and PanDerm methodology notes, refer to [`docs/phase2_baseline_experiments.md`](docs/phase2_baseline_experiments.md).

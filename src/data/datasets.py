@@ -66,6 +66,7 @@ class SkinLesionDataset(Dataset):
         image_col: str = "isic_id",
         subgroup_col: str = "skin_tone_class",
         label_mapping: Optional[Union[str, Path, Dict[str, int]]] = None,
+        modality: Optional[str] = None,
     ):
         """Initialize SkinLesionDataset.
 
@@ -79,6 +80,7 @@ class SkinLesionDataset(Dataset):
             image_col: Column name containing image identifier.
             subgroup_col: Column name for skin tone or demographic subgroup.
             label_mapping: Path to label mapping json or dictionary mapping class name to int.
+            modality: Filter by image modality ('dermoscopic' or 'clinical').
         """
         self.image_dir = Path(image_dir).resolve()
         self.transform = transform
@@ -110,6 +112,12 @@ class SkinLesionDataset(Dataset):
                 mask = self.df["split"].astype(str).str.lower().isin(["val", "validation"])
             else:
                 mask = self.df["split"].astype(str).str.lower() == target_split
+            self.df = self.df[mask].reset_index(drop=True)
+
+        # Modality filtering (e.g. 'dermoscopic' or 'clinical')
+        if modality is not None and "image_type" in self.df.columns:
+            target_modality = str(modality).strip().lower()
+            mask = self.df["image_type"].astype(str).str.lower().str.contains(target_modality)
             self.df = self.df[mask].reset_index(drop=True)
 
         # Ensure label column is populated

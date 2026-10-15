@@ -100,3 +100,18 @@ def test_package_imports():
     assert callable(src.losses.build_loss)
     assert callable(src.eval.WandbLogger)
     assert callable(src.utils.load_config)
+
+
+def test_panderm_dataloader_has_weighted_random_sampler():
+    """Regression test asserting WeightedRandomSampler is attached to Exp-2's training DataLoader."""
+    from torch.utils.data import WeightedRandomSampler
+    from src.data.loaders import create_dataloaders
+
+    train_loader, _, _ = create_dataloaders(pipeline_type="panderm")
+    assert train_loader.sampler is not None, "Exp-2 train_loader must have a sampler attached."
+    assert isinstance(
+        train_loader.sampler, WeightedRandomSampler
+    ), f"Expected WeightedRandomSampler for PanDerm, got {type(train_loader.sampler)}"
+    assert train_loader.sampler.replacement is True, "WeightedRandomSampler must sample with replacement"
+    assert len(train_loader.sampler.weights) == len(train_loader.dataset)
+

@@ -1,0 +1,273 @@
+{
+  "overall_metrics": {
+    "accuracy": 0.5343511450381679,
+    "balanced_accuracy": 0.14839865758256832,
+    "macro_f1": 0.10913986403875847,
+    "weighted_f1": 0.41515422071546537,
+    "macro_precision": 0.08709218267389439,
+    "macro_recall": 0.14839865758256832,
+    "macro_auroc": 0.6252900525938809,
+    "malignant_recall": 0.8164665523156089,
+    "malignant_precision": 0.8164665523156089,
+    "malignant_f1": 0.8164665523156089,
+    "malignant_auroc": 0.6699253901596126,
+    "malignant_classes": [
+      "BCC",
+      "MEL",
+      "SCCKA",
+      "MAL_OTH",
+      "AKIEC"
+    ],
+    "per_class": {
+      "AKIEC": {
+        "f1": 0.0,
+        "recall": 0.0,
+        "precision": 0.0,
+        "support": 54
+      },
+      "BCC": {
+        "f1": 0.7104722792607803,
+        "recall": 0.8849104859335039,
+        "precision": 0.5934819897084048,
+        "support": 391
+      },
+      "BEN_OTH": {
+        "f1": 0.0,
+        "recall": 0.0,
+        "precision": 0.0,
+        "support": 8
+      },
+      "BKL": {
+        "f1": 0.0,
+        "recall": 0.0,
+        "precision": 0.0,
+        "support": 80
+      },
+      "DF": {
+        "f1": 0.0,
+        "recall": 0.0,
+        "precision": 0.0,
+        "support": 5
+      },
+      "INF": {
+        "f1": 0.0,
+        "recall": 0.0,
+        "precision": 0.0,
+        "support": 5
+      },
+      "MAL_OTH": {
+        "f1": 0.0,
+        "recall": 0.0,
+        "precision": 0.0,
+        "support": 2
+      },
+      "MEL": {
+        "f1": 0.0,
+        "recall": 0.0,
+        "precision": 0.0,
+        "support": 67
+      },
+      "NV": {
+        "f1": 0.4900662251655629,
+        "recall": 0.7474747474747475,
+        "precision": 0.3645320197044335,
+        "support": 99
+      },
+      "SCCKA": {
+        "f1": 0.0,
+        "recall": 0.0,
+        "precision": 0.0,
+        "support": 69
+      },
+      "VASC": {
+        "f1": 0.0,
+        "recall": 0.0,
+        "precision": 0.0,
+        "support": 6
+      }
+    },
+    "confusion_matrix": [
+      [
+        0,
+        49,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        5,
+        0,
+        0
+      ],
+      [
+        0,
+        346,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        45,
+        0,
+        0
+      ],
+      [
+        0,
+        6,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0
+      ],
+      [
+        0,
+        64,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        16,
+        0,
+        0
+      ],
+      [
+        0,
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        22,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        45,
+        0,
+        0
+      ],
+      [
+        0,
+        25,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        74,
+        0,
+        0
+      ],
+      [
+        0,
+        58,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        11,
+        0,
+        0
+      ],
+      [
+        0,
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0
+      ]
+    ],
+    "total_samples": 786
+  },
+  "subgroup_fairness": {
+    "subgroups": {
+      "skin_tone_1": {
+        "sample_count": 12,
+        "accuracy": 0.4166666666666667,
+        "balanced_accuracy": 0.25,
+        "macro_f1": 0.17500000000000002
+      },
+      "skin_tone_2": {
+        "sample_count": 72,
+        "accuracy": 0.375,
+        "balanced_accuracy": 0.1636904761904762,
+        "macro_f1": 0.11605415860735009
+      },
+      "skin_tone_3": {
+        "sample_count": 486,
+        "accuracy": 0.5699588477366255,
+        "balanced_accuracy": 0.15389822943014433,
+        "macro_f1": 0.11362746377757471
+      },
+      "skin_tone_4": {
+        "sample_count": 153,
+        "accuracy": 0.5032679738562091,
+        "balanced_accuracy": 0.1687091503267974,
+        "macro_f1": 0.12014147897572307
+      },
+      "skin_tone_5": {
+        "sample_count": 63,
+        "accuracy": 0.5396825396825397,
+        "balanced_accuracy": 0.20634920634920637,
+        "macro_f1": 0.12250712250712252
+      }
+    },
+    "accuracy_disparity": 0.19495884773662553,
+    "balanced_accuracy_disparity": 0.09610177056985567,
+    "evaluated_subgroups_count": 5
+  }
+}

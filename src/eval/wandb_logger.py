@@ -8,6 +8,7 @@ and functional even when W&B is not installed or running in headless CI environm
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Union
 import numpy as np
 
@@ -120,7 +121,11 @@ class WandbLogger:
             metrics: Key-value pairs of metric names and numeric values.
             step: Optional training step / epoch index.
         """
-        clean_metrics = {k: v for k, v in metrics.items() if v is not None and not np.isnan(v) if isinstance(v, (int, float, np.number))}
+        clean_metrics = {
+            k: float(v)
+            for k, v in metrics.items()
+            if isinstance(v, (int, float, np.number)) and not np.isnan(v)
+        }
         entry = dict(clean_metrics)
         if step is not None:
             entry["step"] = step
@@ -270,6 +275,61 @@ class WandbLogger:
             self.run.log({table_name: table}, step=step)
 
         return table_dict
+
+    def log_confusion_matrix(
+        self,
+        cm: List[List[int]],
+        class_names: List[str],
+        table_name: str = "eval/confusion_matrix",
+        step: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Log confusion matrix as a structured table and wandb plot."""
+        columns = ["target_class"] + [f"pred_{c}" for c in class_names]
+        rows = []
+        for i, row in enumerate(cm):
+            target = class_names[i] if i < len(class_names) else f"Class_{i}"
+            rows.append([target] + [int(val) for val in row])
+
+        table_dict = {
+            "columns": columns,
+            "data": rows,
+            "step": step,
+        }
+        self.logged_tables[table_name] = table_dict
+
+        if self.enabled and self.run is not None and WANDB_AVAILABLE:
+            try:
+                table = wandb.Table(columns=columns, data=rows)
+                self.run.log({table_name: table}, step=step)
+            except Exception as e:
+                logger.warning(f"Failed to log confusion matrix to W&B: {e}")
+
+        return table_dict
+
+    def log_artifact(
+        self,
+        artifact_path: Union[str, Path],
+        name: str,
+        artifact_type: str = "model",
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Log a file or directory as a W&B artifact."""
+        path = Path(artifact_path)
+        if not path.exists():
+            logger.warning(f"Artifact path does not exist: {path}")
+            return
+
+        if self.enabled and self.run is not None and WANDB_AVAILABLE:
+            try:
+                artifact = wandb.Artifact(name=name, type=artifact_type, metadata=metadata or {})
+                if path.is_file():
+                    artifact.add_file(str(path))
+                elif path.is_dir():
+                    artifact.add_dir(str(path))
+                self.run.log_artifact(artifact)
+                logger.info(f"Logged artifact {name} ({artifact_type}) to W&B.")
+            except Exception as e:
+                logger.warning(f"Failed to log artifact to W&B: {e}")
 
     def finish(self) -> None:
         """Safely conclude the W&B run."""

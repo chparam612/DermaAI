@@ -40,6 +40,7 @@ def generate_predictions(
     model.eval()
     model.to(device)
 
+    is_cuda = (device == "cuda" or (isinstance(device, str) and device.startswith("cuda")))
     all_isic_ids = []
     all_lesion_ids = []
     all_skin_tones = []
@@ -47,21 +48,25 @@ def generate_predictions(
     all_true_labels = []
     all_pred_labels = []
     all_probs = []
+    all_logits = []
 
     with torch.no_grad():
         for batch_idx, batch in enumerate(dataloader):
             if max_batches is not None and batch_idx >= max_batches:
                 break
             images, labels, metadata = batch
-            images = images.to(device)
+            images = images.to(device, non_blocking=is_cuda)
 
-            logits = model(images)
+            with torch.amp.autocast("cuda", enabled=is_cuda):
+                logits = model(images)
             probs = torch.softmax(logits, dim=-1).cpu().numpy()
+            logits_np = logits.detach().cpu().numpy()
             preds = np.argmax(probs, axis=1)
 
             all_true_labels.extend(labels.numpy().tolist())
             all_pred_labels.extend(preds.tolist())
             all_probs.append(probs)
+            all_logits.append(logits_np)
 
             # Extract batch metadata
             isic_ids = metadata.get("isic_id", [""] * len(labels))
@@ -74,7 +79,11 @@ def generate_predictions(
             all_skin_tones.extend(skin_tones if isinstance(skin_tones, list) else skin_tones.numpy().tolist() if hasattr(skin_tones, "numpy") else list(skin_tones))
             all_splits.extend([str(x) for x in splits])
 
+            if (batch_idx + 1) % 5 == 0 or (batch_idx + 1) == len(dataloader):
+                logger.info(f"Test Inference Batch [{batch_idx + 1}/{len(dataloader)}]")
+
     all_probs_mat = np.vstack(all_probs) if all_probs else np.empty((0, len(classes)))
+    all_logits_mat = np.vstack(all_logits) if all_logits else np.empty((0, len(classes)))
 
     df = pd.DataFrame({
         "isic_id": all_isic_ids,
@@ -87,9 +96,10 @@ def generate_predictions(
         "pred_class": [classes[i] if 0 <= i < len(classes) else "Unknown" for i in all_pred_labels],
     })
 
-    # Add probability columns
+    # Add probability and logit columns
     for i, cls_name in enumerate(classes):
         df[f"prob_{cls_name}"] = all_probs_mat[:, i]
+        df[f"logit_{cls_name}"] = all_logits_mat[:, i]
 
     return df
 

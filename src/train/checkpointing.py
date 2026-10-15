@@ -19,6 +19,7 @@ class CheckpointManager:
         checkpoint_dir: Union[str, Path],
         monitor: str = "val_balanced_acc",
         mode: str = "max",
+        max_keep: Optional[int] = None,
     ):
         """Initialize CheckpointManager.
 
@@ -26,11 +27,16 @@ class CheckpointManager:
             checkpoint_dir: Output directory to store checkpoint weights.
             monitor: Metric key to determine improvement.
             mode: 'max' (higher is better) or 'min' (lower is better).
+            max_keep: Maximum number of epoch-specific checkpoints to retain on disk.
+                      Older ones are pruned to prevent out-of-disk crashes (e.g. on Kaggle).
+                      'best_model.pt' and 'last_model.pt' are always preserved.
         """
         self.checkpoint_dir = Path(checkpoint_dir).resolve()
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         self.monitor = monitor
         self.mode = mode
+        self.max_keep = max_keep
+        self.saved_epoch_checkpoints: list[Path] = []
         self.best_metric_value = -float("inf") if mode == "max" else float("inf")
 
     def is_better(self, current: float) -> bool:
@@ -71,6 +77,18 @@ class CheckpointManager:
         }
         torch.save(state, save_path)
         logger.info(f"Saved checkpoint to {save_path}")
+
+        # Track and prune numbered epoch checkpoints if max_keep is set
+        if filename.startswith("checkpoint_epoch_"):
+            self.saved_epoch_checkpoints.append(save_path)
+            if self.max_keep is not None and len(self.saved_epoch_checkpoints) > self.max_keep:
+                oldest = self.saved_epoch_checkpoints.pop(0)
+                if oldest.exists() and oldest != save_path:
+                    try:
+                        oldest.unlink()
+                        logger.info(f"Pruned older checkpoint {oldest.name} to preserve disk space (max_keep={self.max_keep})")
+                    except Exception as e:
+                        logger.warning(f"Could not delete old checkpoint {oldest}: {e}")
 
         # Check if this is the best so far
         metric_val = metrics.get(self.monitor)

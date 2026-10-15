@@ -122,24 +122,29 @@ def run_experiment(
     device = override_device or ("cuda" if torch.cuda.is_available() else "cpu")
     logger.info(f"Starting experiment '{exp_name}' on device: {device}")
 
-    # Paths
+    # Paths (configurable via config or environment variables)
     data_cfg = config.get("data", {})
-    splits_file = Path(data_cfg.get("splits_file", "data/splits/lesion_level_splits.csv"))
-    image_dir = Path(data_cfg.get("image_dir", "data/images"))
+    splits_file_str = os.environ.get("SPLITS_FILE") or data_cfg.get("splits_file", "data/splits/lesion_level_splits.csv")
+    splits_file = Path(splits_file_str).resolve() if Path(splits_file_str).is_absolute() else Path(splits_file_str)
+
+    image_dir_str = os.environ.get("MILK10K_IMAGE_DIR") or os.environ.get("IMAGE_DIR") or data_cfg.get("image_dir", "data/images")
+    image_dir = Path(image_dir_str).resolve() if Path(image_dir_str).is_absolute() else Path(image_dir_str)
 
     # Validate data integrity
     pre_training_data_integrity_check(splits_file, image_dir)
 
     # Label mapping
-    label_map_path = data_cfg.get("label_mapping", "configs/label_mapping.json")
+    label_map_path = os.environ.get("LABEL_MAPPING") or data_cfg.get("label_mapping", "configs/label_mapping.json")
     label_map = load_label_mapping(label_map_path)
     class_names = [k for k, v in sorted(label_map.items(), key=lambda x: x[1])]
     num_classes = len(class_names)
 
     # Setup directories
     output_cfg = config.get("output", {})
-    checkpoint_dir = Path(output_cfg.get("checkpoint_dir", f"checkpoints/{exp_name}")).resolve()
-    results_dir = Path(output_cfg.get("results_dir", f"results/{exp_name}")).resolve()
+    ckpt_dir_str = os.environ.get("CHECKPOINT_DIR") or output_cfg.get("checkpoint_dir", f"checkpoints/{exp_name}")
+    res_dir_str = os.environ.get("RESULTS_DIR") or output_cfg.get("results_dir", f"results/{exp_name}")
+    checkpoint_dir = Path(ckpt_dir_str).resolve()
+    results_dir = Path(res_dir_str).resolve()
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
     results_dir.mkdir(parents=True, exist_ok=True)
 
@@ -163,6 +168,9 @@ def run_experiment(
         loader_persistent_workers = False
         loader_pin_memory = (device == "cuda")
 
+    modality = data_cfg.get("modality", "dermoscopic")
+    dataloader_cfg = config.get("dataloader", {})
+    weighted_sampler = dataloader_cfg.get("weighted_sampler", None)
     train_loader, val_loader, test_loader = create_dataloaders(
         metadata_path=splits_file,
         image_dir=image_dir,
@@ -173,6 +181,8 @@ def run_experiment(
         persistent_workers=loader_persistent_workers,
         image_size=data_cfg.get("image_size", 224),
         label_mapping=label_map,
+        modality=modality,
+        use_weighted_sampler=weighted_sampler,
     )
 
     if smoke_test:
@@ -181,11 +191,12 @@ def run_experiment(
         print("[SMOKE TEST] Dataset loaded", flush=True)
 
     # Model
+    ckpt_path_str = os.environ.get("PANDERM_CHECKPOINT") or os.environ.get("CHECKPOINT_PATH") or model_cfg.get("checkpoint_path", None)
     model = build_model(
         model_name=model_cfg.get("name", "resnet50"),
         num_classes=num_classes,
         pretrained=model_cfg.get("pretrained", True),
-        checkpoint_path=model_cfg.get("checkpoint_path", None),
+        checkpoint_path=ckpt_path_str,
         dropout_rate=model_cfg.get("dropout_rate", 0.2),
     )
     model.to(device)
@@ -201,9 +212,18 @@ def run_experiment(
 
     # Loss & Optimizer
     loss_cfg = config.get("loss", {})
+    loss_name = loss_cfg.get("name", "cross_entropy")
+    weight = None
+    if loss_name in ("class_balanced_ce", "weighted_ce"):
+        from src.losses.classification import compute_class_weights
+        train_labels = train_loader.dataset.get_labels()
+        weight = compute_class_weights(train_labels, num_classes=num_classes).to(device)
+        logger.info(f"Using class-balanced weights: {weight.tolist()}")
+
     criterion = get_loss_function(
-        loss_name=loss_cfg.get("name", "cross_entropy"),
+        loss_name=loss_name,
         label_smoothing=loss_cfg.get("label_smoothing", 0.0),
+        weight=weight,
     )
 
     if smoke_test:
@@ -248,30 +268,109 @@ def run_experiment(
     opt_name = opt_cfg.get("name", "adamw").lower()
     lr = float(opt_cfg.get("lr", 1e-4))
     weight_decay = float(opt_cfg.get("weight_decay", 1e-2))
+    layer_decay = float(opt_cfg.get("layer_decay", 1.0))
+
+    if layer_decay < 1.0:
+        # Layer-wise LR decay for ViT (following official PanDerm / BEiT LayerDecayValueAssigner)
+        num_layers = 12
+        if hasattr(model, "model") and hasattr(model.model, "get_num_layers"):
+            num_layers = model.model.get_num_layers()
+        elif hasattr(model, "get_num_layers"):
+            num_layers = model.get_num_layers()
+
+        scales = [layer_decay ** (num_layers + 1 - i) for i in range(num_layers + 2)]
+
+        def get_layer_id_for_vit(name: str) -> int:
+            clean_name = name.replace("model.", "")
+            if clean_name in ("cls_token", "mask_token", "pos_embed") or clean_name.startswith("patch_embed"):
+                return 0
+            elif clean_name.startswith("blocks."):
+                return int(clean_name.split(".")[1]) + 1
+            else:
+                return num_layers + 1
+
+        groups = {}
+        for name, param in model.named_parameters():
+            if not param.requires_grad:
+                continue
+            lid = get_layer_id_for_vit(name)
+            scale = scales[lid]
+            no_decay = (len(param.shape) == 1 or name.endswith(".bias") or "pos_embed" in name or "cls_token" in name)
+            wd = 0.0 if no_decay else weight_decay
+            key = (lid, wd)
+            if key not in groups:
+                groups[key] = {
+                    "params": [],
+                    "lr": lr * scale,
+                    "weight_decay": wd,
+                    "lr_scale": scale,
+                    "layer_id": lid,
+                }
+            groups[key]["params"].append(param)
+        param_groups = list(groups.values())
+        logger.info(
+            f"Created {len(param_groups)} parameter groups with layer_decay={layer_decay} "
+            f"(scale range: {scales[0]:.4f} to {scales[-1]:.4f})"
+        )
+    else:
+        param_groups = model.parameters()
 
     if opt_name == "sgd":
-        optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=weight_decay)
+        optimizer = torch.optim.SGD(param_groups, lr=lr, momentum=0.9, weight_decay=weight_decay)
     else:
-        optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
+        optimizer = torch.optim.AdamW(param_groups, lr=lr, weight_decay=weight_decay)
 
-    # Scheduler
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)
+    # Scheduler with optional warmup
+    warmup_epochs = int(opt_cfg.get("warmup_epochs", train_cfg.get("warmup_epochs", 0)))
+    min_lr = float(opt_cfg.get("min_lr", 1e-6))
+    if warmup_epochs > 0 and epochs > warmup_epochs:
+        from torch.optim.lr_scheduler import SequentialLR, LinearLR, CosineAnnealingLR
+        warmup_sched = LinearLR(optimizer, start_factor=0.01, end_factor=1.0, total_iters=warmup_epochs)
+        cosine_sched = CosineAnnealingLR(optimizer, T_max=epochs - warmup_epochs, eta_min=min_lr)
+        scheduler = SequentialLR(optimizer, schedulers=[warmup_sched, cosine_sched], milestones=[warmup_epochs])
+        logger.info(f"Using SequentialLR scheduler: {warmup_epochs} warmup epochs -> CosineAnnealingLR (min_lr={min_lr})")
+    else:
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=min_lr)
+        logger.info(f"Using CosineAnnealingLR scheduler (T_max={epochs}, min_lr={min_lr})")
 
     # Logger
     wandb_cfg = config.get("wandb", {})
+    env_wandb_mode = os.environ.get("WANDB_MODE")
+    if env_wandb_mode:
+        resolved_wandb_mode = env_wandb_mode.lower()
+    else:
+        resolved_wandb_mode = "offline" if (offline or wandb_cfg.get("offline", True)) else "online"
+
     wb_logger = WandbLogger(
-        project=wandb_cfg.get("project", "SkinCancerTracker"),
+        project=os.environ.get("WANDB_PROJECT") or wandb_cfg.get("project", "SkinCancerTracker"),
         experiment_name=f"{exp_name}_seed{seed}",
         config={**config, "smoke_test": smoke_test},
         enabled=(not no_wandb),
-        mode="offline" if (offline or wandb_cfg.get("offline", True)) else "online",
+        mode=resolved_wandb_mode,
     )
 
-    # Checkpoint manager
-    ckpt_mgr = CheckpointManager(checkpoint_dir=checkpoint_dir, monitor="val_balanced_acc", mode="max")
+    # Checkpoint manager: monitor val_macro_f1 to capture tail/malignant class performance
+    monitor_metric = train_cfg.get("monitor", "val_macro_f1")
+    max_keep_env = os.environ.get("CHECKPOINT_MAX_KEEP")
+    max_keep_val = int(max_keep_env) if max_keep_env is not None else output_cfg.get("max_keep", None)
+    if max_keep_val is not None:
+        max_keep_val = int(max_keep_val)
 
+    ckpt_mgr = CheckpointManager(
+        checkpoint_dir=checkpoint_dir,
+        monitor=monitor_metric,
+        mode="max",
+        max_keep=max_keep_val,
+    )
+    logger.info(f"CheckpointManager monitoring: {monitor_metric} (mode=max, max_keep={max_keep_val})")
+
+    import time
+    import datetime
+
+    start_time = time.time()
     logger.info(f"Beginning training for {epochs} epoch(s)... (smoke_test={smoke_test})")
     for epoch in range(1, epochs + 1):
+        accum_steps = int(train_cfg.get("gradient_accumulation_steps", 1))
         train_metrics = train_one_epoch(
             model=model,
             dataloader=train_loader,
@@ -280,6 +379,7 @@ def run_experiment(
             device=device,
             clip_grad=train_cfg.get("clip_grad", 1.0),
             max_batches=max_batches,
+            accumulation_steps=accum_steps,
         )
 
         val_metrics = validate(
@@ -296,16 +396,31 @@ def run_experiment(
         combined_metrics = {**train_metrics, **val_metrics, "lr": optimizer.param_groups[0]["lr"]}
         wb_logger.log_metrics(combined_metrics, step=epoch)
 
+        vram_str = f"{train_metrics.get('peak_vram_mb', 0.0):.1f} MB"
+        num_preds = val_metrics.get('val_num_predicted_classes', 0)
+        pred_dist_str = str(val_metrics.get('val_prediction_distribution', {}))
         logger.info(
             f"Epoch {epoch}/{epochs} | "
             f"Train Loss: {train_metrics['train_loss']:.4f} | "
             f"Val Loss: {val_metrics['val_loss']:.4f} | "
             f"Val Bal Acc: {val_metrics['val_balanced_acc']:.4f} | "
-            f"Val Macro F1: {val_metrics['val_macro_f1']:.4f}"
+            f"Val Macro F1: {val_metrics['val_macro_f1']:.4f} | "
+            f"Pred Classes: {num_preds}/11 | "
+            f"Peak VRAM: {vram_str}"
         )
+        logger.info(f"Epoch {epoch}/{epochs} Val Prediction Distribution: {pred_dist_str}")
 
         # Save checkpoint
         ckpt_mgr.save(model, optimizer, epoch, combined_metrics)
+
+    total_training_time = time.time() - start_time
+    gpu_name = torch.cuda.get_device_name(0) if (torch.cuda.is_available() and device.startswith("cuda")) else "CPU"
+    runtime_info = {
+        "device": device,
+        "gpu_name": gpu_name,
+        "total_training_time_seconds": round(total_training_time, 2),
+        "total_training_time_formatted": str(datetime.timedelta(seconds=int(total_training_time))),
+    }
 
     # Load best model for test evaluation
     best_ckpt_path = checkpoint_dir / "best_model.pt"
@@ -329,12 +444,45 @@ def run_experiment(
         "test_balanced_accuracy": test_overall["balanced_accuracy"],
         "test_macro_f1": test_overall["macro_f1"],
         "test_weighted_f1": test_overall["weighted_f1"],
+        "test_macro_auroc": test_overall.get("macro_auroc", 0.0),
+        "test_malignant_recall": test_overall.get("malignant_recall", 0.0),
+        "test_malignant_precision": test_overall.get("malignant_precision", 0.0),
+        "test_malignant_auroc": test_overall.get("malignant_auroc", 0.0),
         "skin_tone_disparity": eval_results["subgroup_fairness"].get("balanced_accuracy_disparity", 0.0),
+        "total_training_time_seconds": round(total_training_time, 2),
     }
+
+    # Log per-class recalls for malignant classes
+    for mal_cls in ["BCC", "MEL", "SCCKA", "MAL_OTH", "AKIEC"]:
+        if mal_cls in test_overall.get("per_class", {}):
+            test_log[f"test_recall_{mal_cls}"] = test_overall["per_class"][mal_cls]["recall"]
+
     wb_logger.log_metrics(test_log, step=epochs + 1)
+
+    # Log confusion matrix to W&B
+    if "confusion_matrix" in test_overall:
+        wb_logger.log_confusion_matrix(test_overall["confusion_matrix"], class_names=class_names, step=epochs + 1)
+
+    # Log best checkpoint as artifact
+    if best_ckpt_path.is_file():
+        wb_logger.log_artifact(best_ckpt_path, name=f"{exp_name}-checkpoint", artifact_type="model")
+
     wb_logger.finish()
 
-    logger.info(f"Experiment {exp_name} completed successfully. Artifacts in {results_dir}")
+    # Save summary metrics json
+    summary_data = {
+        "experiment_name": exp_name,
+        "runtime_info": runtime_info,
+        "test_overall": test_overall,
+        "subgroup_fairness": eval_results["subgroup_fairness"],
+    }
+    summary_path = results_dir / "summary_metrics.json"
+    with open(summary_path, "w", encoding="utf-8") as f:
+        json.dump(summary_data, f, indent=2)
+    logger.info(f"Saved summary metrics to {summary_path}")
+
+    eval_results["runtime_info"] = runtime_info
+    logger.info(f"Experiment {exp_name} completed successfully in {runtime_info['total_training_time_formatted']}. Artifacts in {results_dir}")
     return eval_results
 
 

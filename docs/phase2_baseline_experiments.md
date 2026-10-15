@@ -9,12 +9,12 @@
 
 ## 1. Executive Summary
 
-Phase 2 establishes the baseline benchmarks for multimodal dermatology classification on the **MILK10k** dataset, strictly isolating the **dermoscopic image modality** to provide a controlled reference for subsequent multimodal fusion and imbalance-mitigation experiments:
+Phase 2 establishes the reference baseline benchmarks for multimodal dermatology classification on the **MILK10k** dataset, strictly isolating the **dermoscopic image modality** to provide a controlled reference for subsequent multimodal fusion and imbalance-mitigation experiments:
 
 1. **Exp-1: ResNet-50 CNN Baseline** (`exp1-resnet50-baseline`)  
    - ImageNet-pretrained standard convolutional architecture (25.5M parameters).
    - Class-balanced Cross-Entropy loss ($w_c = \frac{N}{C \cdot N_c}$, normalized).
-   - Reference local run (RTX 2050): 1 epoch sanity check (91.65s). Standalone Kaggle 30-epoch training script packaged under `kaggle/run_exp1_resnet50.py`.
+   - **Status**: 1 epoch, local, not comparable. Trained for only 1 epoch (91.65s) on local RTX 2050 as an engineering smoke test. Standalone Kaggle 30-epoch training script packaged under `kaggle/run_exp1_resnet50.py`. **No backbone superiority or inferiority claim is made between ResNet-50 and PanDerm ViT until the full Kaggle Exp-1 run is executed.**
 2. **Exp-2 (v1): PanDerm ViT-Base Initial Fine-Tune** (`exp2-panderm-finetune`)  
    - Dermatology domain foundation model (Nature Medicine 2025, 86M parameters).
    - Standard fine-tuning recipe with unweighted sampler and step LR schedule.
@@ -22,8 +22,9 @@ Phase 2 establishes the baseline benchmarks for multimodal dermatology classific
 3. **Exp-2 (v2): PanDerm ViT-Base Corrected 30-Epoch Run** (`exp2-panderm-finetune-v2`)  
    - Official PanDerm ViT architecture with layer-scale (`gamma_1`), 12 blocks, and bicubic relative position bias interpolation.
    - Five root-cause improvements: weighted random sampler, layer-wise LR decay (0.9), key remapping for official ViT blocks, `val_macro_f1` checkpointing, and 30-epoch cosine schedule with 5-epoch warmup.
+   - Model selection: **Strictly selected on VALIDATION metrics only** (`val_macro_f1` at Epoch 26 = 0.4064).
    - Hardware: Trained on Kaggle GPU (Tesla T4, 16GB VRAM) in 29m 20s (1,760.5s).
-   - Result: Top-1 Accuracy 64.38%, Balanced Accuracy 39.34%, Macro-F1 0.3925, Malignant Recall 89.02%, Malignant AUROC 0.8022.
+   - Test Result (evaluated once on frozen model): Top-1 Accuracy 64.38%, Balanced Accuracy 39.34%, Macro-F1 0.3925, Malignant Recall 89.02%, Malignant AUROC 0.8022.
 
 ---
 
@@ -50,19 +51,38 @@ Phase 2 establishes the baseline benchmarks for multimodal dermatology classific
 
 Evaluated on the MILK10k held-out test split ($N = 786$, zero lesion leakage, identical label mapping):
 
-| Experiment | Architecture | Modality | Top-1 Accuracy | Balanced Accuracy | Macro-F1 | Weighted F1 | Malignant Recall | Malignant AUROC | Epochs | Training Time / Device |
+| Experiment | Architecture | Modality | Top-1 Accuracy | Balanced Accuracy | Macro-F1 | Weighted F1 | Malignant Recall | Malignant AUROC | Epochs | Notes |
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| **Exp-1** | ResNet-50 | Dermoscopic | 0.5191 | 0.3338 | 0.2869 | 0.5398 | 0.8868 | 0.7549 | 1 (ref) | 1m 32s (RTX 2050 4GB) |
-| **Exp-2 (v1)** | PanDerm ViT-B | Dermoscopic | 0.5344 | 0.2185 | 0.1091 | 0.4497 | 0.8165 | 0.6699 | 10 | 11m 10s (RTX 2050 4GB) |
-| **Exp-2 (v2)** | PanDerm ViT-B | Dermoscopic | **0.6438** | **0.3934** | **0.3925** | **0.6469** | **0.8902** | **0.8022** | **30** | **29m 20s (Tesla T4 16GB)** |
+| **Exp-1** | ResNet-50 | Dermoscopic | 0.5191 | 0.3338 | 0.2869 | 0.5398 | 0.8868 | 0.7549 | 1 (ref) | **1 epoch, local, not comparable** (RTX 2050 91s reference; full 30-epoch Kaggle run pending) |
+| **Exp-2 (v1)** | PanDerm ViT-B | Dermoscopic | 0.5344 | 0.2185 | 0.1091 | 0.4497 | 0.8165 | 0.6699 | 10 | v1 recipe (unweighted sampler, majority collapse onto BCC/NV; val-acc monitoring) |
+| **Exp-2 (v2)** | PanDerm ViT-B | Dermoscopic | **0.6438** | **0.3934** | **0.3925** | **0.6469** | **0.8902** | **0.8022** | **30** | **v2 corrected** (weighted sampler, layer_decay=0.9, val_macro_f1 checkpointing; **selection on val only**) |
 
 *Artifact file paths*:
 - CSV: [`results/ablation_table.csv`](file:///C:/Users/prtv1/OneDrive/Attachments/Desktop/ResearchProject/SkinCancerTracker/results/ablation_table.csv)
 - Markdown: [`results/ablation_table.md`](file:///C:/Users/prtv1/OneDrive/Attachments/Desktop/ResearchProject/SkinCancerTracker/results/ablation_table.md)
 
+> [!IMPORTANT]
+> **No Backbone Comparison Claim**: The Exp-1 ResNet-50 row is strictly labeled *1 epoch, local, not comparable*. It served as an initial local pipeline integration test and does not represent a fully converged CNN baseline. No superiority or architectural claim between PanDerm ViT-Base and ResNet-50 is made until the 30-epoch Kaggle Exp-1 run is executed under identical training schedules.
+
 ---
 
-## 4. Exp-2 (v2) Detailed Per-Class Evaluation (N = 786)
+## 4. Methodological Selection: Why Exp-2 v2 Was Selected Over v1
+
+Exp-2 (v2) was selected to replace Exp-2 (v1) based on five critical architectural and methodological corrections:
+
+1. **Batch Sampling**: Exp-2 (v1) used uniform random shuffling, allowing the dominant BCC class (48.1% of training data) to dominate individual mini-batches and starve tail classes. Exp-2 (v2) introduced a `WeightedRandomSampler` with inverse-class-frequency sampling probabilities ($w_c \propto 1/N_c$), ensuring rare classes are consistently represented across optimization steps.
+2. **Layer-Wise Learning Rate Decay**: Exp-2 (v1) applied a single global learning rate across all 12 transformer blocks. Exp-2 (v2) implemented official BEiT/PanDerm layer-wise LR decay (`layer_decay = 0.9`), scaling earlier transformer blocks with lower learning rates ($\eta_l = \eta_0 \cdot 0.9^{12 - l}$) to preserve self-supervised medical feature representations while adapting classification layers.
+3. **Official Architecture & Checkpoint Alignment**: Exp-2 (v1) inadvertently fell back to generic `timm` ViT when loading `panderm_base.pth`, resulting in 16 missing keys and 50 unexpected keys. Exp-2 (v2) instantiated the official `models.modeling_finetune.VisionTransformer` with 12 layer-scale parameters (`blocks.*.gamma_1`), bicubic relative position bias interpolation, and verified zero missing backbone keys.
+4. **Validation-Only Model Selection Contract**:
+   - In Exp-2 (v1), checkpoints were saved by tracking validation loss or accuracy, which favored majority-class overprediction and masked tail-class collapse.
+   - In Exp-2 (v2), **model selection strictly used VALIDATION metrics only**: the `CheckpointManager` monitored `val_macro_f1` on the 786-lesion validation set across 30 epochs.
+   - Checkpoint selection occurred at **Epoch 26** because it attained the global peak validation Macro-F1 (`val_macro_f1 = 0.4064`, 10/11 classes predicted).
+   - **The held-out test set ($N=786$) was never touched during training or hyperparameter tuning**, and was evaluated exactly **once** on the frozen Epoch 26 checkpoint.
+5. **Restored Optimization Horizon**: Expanded training from 10 epochs (v1) to 30 epochs with a 5-epoch linear warmup followed by cosine annealing to $\eta_{\min} = 10^{-6}$.
+
+---
+
+## 5. Exp-2 (v2) Detailed Per-Class Evaluation (N = 786)
 
 | Class | Category | Test Support | Predicted Count | Precision | Recall | F1-Score |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
@@ -98,7 +118,7 @@ VASC        |       0       2       0       0       0       1       0       0   
 
 ---
 
-## 5. Binary Malignant vs. Benign Safety Audit
+## 6. Binary Malignant vs. Benign Safety Audit
 
 In clinical triage, the highest-cost failure mode is misclassifying a malignant lesion as benign (a **false negative**).
 
@@ -125,7 +145,7 @@ In clinical triage, the highest-cost failure mode is misclassifying a malignant 
 
 ---
 
-## 6. Subgroup Fairness & Disaggregated Skin-Tone Audit
+## 7. Subgroup Fairness & Disaggregated Skin-Tone Audit
 
 Fairness is evaluated across **3 Fitzpatrick skin-tone buckets** and all **5 individual skin-tone levels** present in the test partition. Subgroups with $n < 30$ lesions are explicitly flagged **LOW-CONFIDENCE**. Bootstrap 95% confidence intervals are computed over 2,000 resamples.
 
@@ -137,8 +157,8 @@ Fairness is evaluated across **3 Fitzpatrick skin-tone buckets** and all **5 ind
 | **Medium (Tones 2–3)** | 558 | FALSE | 0.6254 | 0.3410 | 0.3401 [0.278, 0.415] | 0.1060 [0.076, 0.137] | 0.8940 |
 | **Light (Tones 4–5)** | 216 | FALSE | 0.6944 | 0.5493 | 0.5032 [0.356, 0.591] | 0.1173 [0.071, 0.172] | 0.8827 |
 
-- **3-Bucket Malignant FNR Disparity ($\max - \min$)**: **6.06%** ($0.1667 - 0.1060$).
-- **3-Bucket Balanced Accuracy Disparity ($\max - \min$)**: **24.23%** ($0.5833 - 0.3410$).
+- **Statistical Significance of Dark-Bucket FNR Gap**:
+  While the point estimate for Dark-bucket Malignant FNR is higher ($16.67\%$) compared to Medium ($10.60\%$) and Light ($11.73\%$), **this gap is not statistically supportable**. With only $n = 12$ total test lesions in the Dark bucket, the bootstrap 95% confidence interval is extremely wide ($[0.000, 0.500]$) and heavily overlaps with both the Medium bucket ($[0.076, 0.137]$) and Light bucket ($[0.071, 0.172]$). No statistically significant disparity in Malignant FNR across skin-tone buckets can be claimed on this test split.
 
 ### 5 Individual Skin-Tones Audit
 
@@ -150,49 +170,50 @@ Fairness is evaluated across **3 Fitzpatrick skin-tone buckets** and all **5 ind
 | **Tone 4** | 153 | FALSE | 0.7059 | 0.4914 | 0.4366 [0.341, 0.593] | 0.1161 [0.061, 0.175] | 0.8839 |
 | **Tone 5** | 63 | FALSE | 0.6667 | 0.5916 | 0.4949 [0.322, 0.610] | 0.1200 [0.039, 0.213] | 0.8800 |
 
-- **5-Tone Malignant FNR Disparity ($\max - \min$)**: **6.35%** ($0.1667 - 0.1032$).
-- **5-Tone Balanced Accuracy Disparity ($\max - \min$)**: **36.95%** ($0.6517 - 0.2823$).
-
 ---
 
-## 7. Dissecting Tone 3 (The Largest Subgroup, N = 486)
+## 8. Dissecting Tone 3 (The Largest Subgroup, N = 486)
 
-Tone 3 accounts for **61.84%** of the entire test partition (486 of 786 lesions). While Tone 3 achieves solid raw accuracy ($62.35\%$), its Balanced Accuracy is surprisingly poor ($28.23\%$) and Macro-F1 is deeply depressed ($0.2718$ vs $0.5206$ in Tone 2 and $0.5032$ in Light tones).
+Tone 3 accounts for **61.84%** of the entire test partition (486 of 786 lesions). While Tone 3 achieves solid raw accuracy ($62.35\%$), its Balanced Accuracy is deeply depressed ($28.23\%$) and Macro-F1 is low ($0.2718$ vs $0.5206$ in Tone 2 and $0.5032$ in Light tones).
 
-Disaggregating performance within Tone 3 vs Non-Tone 3 reveals the root cause:
+Disaggregating performance within Tone 3 vs Non-Tone 3 reveals factors **associated with** this performance profile. Bootstrap 95% confidence intervals (2,000 resamples) are provided for each recall estimate and for the pairwise difference ($\text{Recall}_{\text{Tone 3}} - \text{Recall}_{\text{Non-Tone 3}}$):
 
-| Class | Tone 3 Support | Tone 3 Recall | Non-Tone 3 Support | Non-Tone 3 Recall | Recall Difference (T3 - NonT3) | Tone 3 Class Preval. | Non-Tone 3 Preval. |
+| Class | Tone 3 Supp | Tone 3 Recall [95% CI] | Non-T3 Supp | Non-T3 Recall [95% CI] | Recall Difference [95% CI] | Tone 3 Preval. | Non-T3 Preval. |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **AKIEC** | 41 | 0.3171 | 13 | 0.4615 | -0.1445 | 8.44% | 4.33% |
-| **BCC** | 260 | **0.7923** | 131 | 0.6718 | **+0.1206** | **53.50%** | **43.67%** |
-| **BEN_OTH** | 2 | **0.0000** | 6 | 0.1667 | -0.1667 | 0.41% | 2.00% |
-| **BKL** | 52 | 0.2500 | 28 | 0.5357 | **-0.2857** | 10.70% | 9.33% |
-| **DF** | 3 | **0.0000** | 2 | 0.5000 | -0.5000 | 0.62% | 0.67% |
-| **INF** | 1 | **0.0000** | 4 | 0.0000 | +0.0000 | 0.21% | 1.33% |
-| **MAL_OTH** | 2 | **0.0000** | 0 | N/A | N/A | 0.41% | 0.00% |
-| **MEL** | 32 | 0.5625 | 35 | 0.8000 | **-0.2375** | 6.58% | 11.67% |
-| **NV** | 47 | 0.5319 | 52 | 0.7885 | **-0.2565** | 9.67% | 17.33% |
-| **SCCKA** | 43 | 0.6512 | 26 | 0.7692 | -0.1181 | 8.85% | 8.67% |
-| **VASC** | 3 | **0.0000** | 3 | 1.0000 | **-1.0000** | 0.62% | 1.00% |
+| **AKIEC** | 41 | 0.3171 [0.184, 0.469] | 13 | 0.4615 [0.182, 0.750] | -0.1445 [-0.469, +0.183] | 8.44% | 4.33% |
+| **BCC** | 260 | **0.7923 [0.740, 0.842]** | 131 | **0.6718 [0.589, 0.748]** | **+0.1206 [+0.034, +0.219]** | **53.50%** | **43.67%** |
+| **BEN_OTH** | 2 | 0.0000 [0.000, 0.000] | 6 | 0.1667 [0.000, 0.500] | -0.1667 [-0.500, +0.000] | 0.41% | 2.00% |
+| **BKL** | 52 | **0.2500 [0.140, 0.375]** | 28 | **0.5357 [0.333, 0.727]** | **-0.2857 [-0.518, -0.057]** | 10.70% | 9.33% |
+| **DF** | 3 | 0.0000 [0.000, 0.000] | 2 | 0.5000 [0.000, 1.000] | -0.5000 [-1.000, +0.000] | 0.62% | 0.67% |
+| **INF** | 1 | 0.0000 [0.000, 0.000] | 4 | 0.0000 [0.000, 0.000] | +0.0000 [+0.000, +0.000] | 0.21% | 1.33% |
+| **MAL_OTH** | 2 | 0.0000 [0.000, 0.000] | 0 | N/A | N/A | 0.41% | 0.00% |
+| **MEL** | 32 | **0.5625 [0.400, 0.737]** | 35 | **0.8000 [0.655, 0.929]** | **-0.2375 [-0.455, -0.011]** | 6.58% | 11.67% |
+| **NV** | 47 | **0.5319 [0.391, 0.676]** | 52 | **0.7885 [0.673, 0.892]** | **-0.2565 [-0.430, -0.068]** | 9.67% | 17.33% |
+| **SCCKA** | 43 | 0.6512 [0.500, 0.794] | 26 | 0.7692 [0.588, 0.926] | -0.1181 [-0.345, +0.114] | 8.85% | 8.67% |
+| **VASC** | 3 | 0.0000 [0.000, 0.000] | 3 | 1.0000 [1.000, 1.000] | -1.0000 [-1.000, -1.000] | 0.62% | 1.00% |
 
-### Findings:
-1. **Extreme BCC Dominance**: More than half of all Tone 3 lesions are BCC ($53.50\%$, 260 / 486). The model exploits this prior, achieving $+12.06\%$ higher recall on BCC in Tone 3 ($79.23\%$) than outside Tone 3 ($67.18\%$).
-2. **Total Tail-Class Extinction in Tone 3**: All five rare classes (`BEN_OTH`, `DF`, `INF`, `MAL_OTH`, `VASC`) have **exactly 0.0000 recall** in Tone 3. Not a single instance of these five categories was correctly detected in Tone 3.
-3. **Impaired Discrimination on Common Categories**: Discrimination on non-BCC common classes is severely impaired in Tone 3: BKL recall is $28.57\%$ lower, MEL recall is $23.75\%$ lower, and NV recall is $25.65\%$ lower.
+### Observations:
+1. **BCC Dominance**: Tone 3 is heavily concentrated in BCC ($53.50\%$ vs $43.67\%$ in Non-Tone 3). The model exhibits a statistically significant higher recall on BCC in Tone 3 ($+0.1206$ difference, 95% CI $[+0.034, +0.219]$).
+2. **Statistically Significant Recall Deficits on Non-BCC Categories**:
+   - **BKL**: $-0.2857$ difference (95% CI $[-0.518, -0.057]$).
+   - **MEL**: $-0.2375$ difference (95% CI $[-0.455, -0.011]$).
+   - **NV**: $-0.2565$ difference (95% CI $[-0.430, -0.068]$).
+   All three differences exclude zero, confirming that discrimination across these prevalent non-BCC categories is significantly lower within Tone 3.
+3. **Tail-Class Zero-Recall**: All 5 rare classes (`BEN_OTH`, `DF`, `INF`, `MAL_OTH`, `VASC`) had 0 correctly detected lesions in Tone 3. However, because their test support in Tone 3 is tiny ($1$ to $3$ lesions), their confidence intervals are wide or degenerate.
 
-*Conclusion*: The disparity in Tone 3 is not an artifact of Fitzpatrick pigment interference alone; rather, it is exacerbated by an extreme local class imbalance where BCC swamps the feature space, leading the model to over-predict BCC at the expense of every other diagnostic category.
+*Interpretation*: The depressed Macro-F1 and Balanced Accuracy in Tone 3 is **associated with** the combination of extreme local class skew towards BCC and significant recall drops on BKL, MEL, and NV, rather than direct optical interference from Fitzpatrick pigmentation alone.
 
 ---
 
-## 8. Overfitting Evidence & Training Dynamics
+## 9. Overfitting Evidence & Training Dynamics
 
-Inspection of the best model checkpoint (`checkpoints/exp2_panderm_v2/best_model.pt`) and training curves logs reveals noticeable generalization divergence:
+Inspection of the best model checkpoint (`checkpoints/exp2_panderm_v2/best_model.pt`) and training logs reveals noticeable generalization divergence:
 
 - **Best Checkpoint Epoch**: **Epoch 26 of 30** (selected by `val_macro_f1 = 0.4064`).
 - **Train Loss**: $0.7589$ vs. **Val Loss**: $1.4394$ ($\Delta = +0.6805$).
 - **Train Accuracy**: **88.69%** ($3,253 / 3,668$) vs. **Val Accuracy**: **62.09%** ($488 / 786$) ($\Delta = +26.60\%$).
-- **Train-Val Generalization Gap**: Despite the use of label smoothing ($\epsilon = 0.1$) and layer-decay ($0.9$), the foundation model fit the training partition tightly while validation loss plateaued after epoch 20 and validation Macro-F1 peaked at epoch 26 before decaying slightly in epochs 27–30.
-- **Val vs. Test Consistency**:
+- **Generalization Plateau**: Despite label smoothing ($\epsilon = 0.1$) and layer-decay ($0.9$), training accuracy climbed to 88.69% while validation loss plateaued after epoch 20 and validation Macro-F1 peaked at epoch 26 before decaying slightly in epochs 27–30.
+- **Val vs. Test Alignment**:
   - Validation Accuracy: $62.09\%$ $\rightarrow$ Test Accuracy: $64.38\%$ ($+2.29\%$).
   - Validation Balanced Accuracy: $43.80\%$ $\rightarrow$ Test Balanced Accuracy: $39.34\%$ ($-4.46\%$).
   - Validation Macro-F1: $0.4064$ $\rightarrow$ Test Macro-F1: $0.3925$ ($-1.39\%$).
@@ -200,16 +221,19 @@ Inspection of the best model checkpoint (`checkpoints/exp2_panderm_v2/best_model
 
 ---
 
-## 9. Honest Limitations
+## 10. Honest Limitations & Protocol Update
 
 1. **Single Seed Reference**: Exp-2 (v2) was trained on a single random seed (`seed = 42`). Multi-seed runs (e.g. 3 seeds) are required to establish variance bounds for publication.
 2. **Internal vs Official Benchmark Set**: Evaluated on MILK10k internal held-out test partition ($N = 786$, zero lesion leakage). This internal benchmark is **not directly comparable** to the published 53.6% top-1 accuracy reported in the PanDerm Nature Medicine paper, which evaluated on external public benchmarks (e.g., ISIC 2018 / 2019 / Derm7pt) under differing label taxonomies.
-3. **Instability of Extreme Tail Classes**: In the 786-lesion test set, several classes have extremely low support: `MAL_OTH` ($n = 2$), `DF` ($n = 5$), `INF` ($n = 5$), `VASC` ($n = 6$), and `BEN_OTH` ($n = 8$). A point estimate shift of a single correct prediction alters class recall by $12.5\%$ to $50.0\%$. These point estimates must be interpreted with caution.
+3. **Tail-Class Test Counts & Metric Reliability Threshold**:
+   - In the 786-lesion test set, tail classes possess extremely limited sample counts: `MAL_OTH` ($n = 2$), `DF` ($n = 5$), `INF` ($n = 5$), `VASC` ($n = 6$), and `BEN_OTH` ($n = 8$).
+   - A shift of just a single correct prediction in `MAL_OTH` changes its recall by $0.50$ and shifts overall Macro-F1 by $\approx 0.045$.
+   - **Protocol Rule**: Macro-F1 differences below $\approx \mathbf{0.05}$ are considered statistically unreliable without confidence intervals. **From Phase 3 onward, every experiment comparison must report a paired bootstrap 95% confidence interval on the difference ($\Delta \text{Macro-F1}$ and $\Delta \text{Malignant FNR}$).**
 4. **Dark Skin-Tone Scarcity**: Skin tone level 1 contains only $12$ test lesions ($1.5\%$ of the test set), and skin tone level 0 has zero samples. All metrics reported for the Dark bucket are explicitly flagged **LOW-CONFIDENCE** ($n < 30$).
 
 ---
 
-## 10. Reproducibility & Integrity Manifest
+## 11. Reproducibility & Integrity Manifest
 
 - **Splits File**: `data/splits/lesion_level_splits.csv`
 - **Splits SHA-256**: `a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36`

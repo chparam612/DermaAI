@@ -73,25 +73,41 @@
 
 ---
 
-### Phase 4: Hierarchical Loss & Two-Stage Classification (In Progress)
+### Phase 4: Hierarchical Loss & Targeted Supervised Contrastive Learning (TSC) (In Progress)
 - **Master Plan Order Decision**: Explicit decision confirmed to retain original MASTER_PLAN order:
-  - **Phase 4**: Hierarchical Loss + Two-Stage Classification (TSC)
-  - **Phase 5**: Calibration & Reliability Triage
+  - **Phase 4**: Hierarchical Loss + Targeted Supervised Contrastive Learning (TSC)
+  - **Phase 5**: MONET Concept Bottleneck Head & Demographic Fairness Auditing
   - **Phase 6**: Multimodal Dual-Image Fusion (Dermoscopic + Clinical Close-up)
+- **Calibration Note**: Calibration (Expected Calibration Error / ECE, reliability diagrams) is a cross-cutting evaluation metric reported in every phase, not an independent phase.
 - **Rationale**:
   1. The hierarchical loss module is already implemented, computationally cheap, and directly targets the 58 out of 64 missed malignancies that leak into benign attractor states (BKL/NV).
   2. Dual-image fusion on MILK10k already exists in prior literature; the novel methodological contribution of this research is the cost-sensitive loss, demographic fairness auditing, and calibration triage framework.
-- **Phase 4.1 Specification**:
-  - Implemented AsymmetricHierarchicalCostLoss and uild_asymmetric_cost_matrix in src/losses/hierarchical.py.
-  - Cost matrix entries ({\\text{fn}}=5.0, c_{\\text{fp}}=1.5, c_{\\text{within\\_mal}}=1.0, c_{\\text{within\\_ben}}=0.5$) are explicitly treated as **unvalidated clinical hypotheses**.
-  - Planned hyperparameter $\\alpha$ sweep: $\\alpha \\in \\{0.25, 0.5, 1.0, 2.0\\}$ tuned strictly on the VALIDATION split (=786$).
+- **Phase 4.1 Specification (Asymmetric Hierarchical Cost Loss)**:
+  - Implemented `AsymmetricHierarchicalCostLoss` and `build_asymmetric_cost_matrix` in `src/losses/hierarchical.py`.
+  - Cost matrix entries ($c_{\text{fn}}=5.0, c_{\text{fp}}=1.5, c_{\text{within\_mal}}=1.0, c_{\text{within\_ben}}=0.5$) are explicitly treated as **unvalidated clinical hypotheses**.
+  - Planned hyperparameter $\alpha$ sweep: $\alpha \in \{0.25, 0.5, 1.0, 2.0\}$ tuned strictly on the VALIDATION split ($N=786$).
   - Mandatory reporting contract for all Phase 4 runs:
     1. Malignant False Negative Rate (FNR) with 95% bootstrap CI.
     2. Malignant Specificity & False-Positive lesion count.
     3. Macro-F1 with paired bootstrap CI against the base recipe.
   - **Base Recipe Selection Protocol**: Phase 4 will build on the winning base recipe among {Exp-2 v2 (weighted sampler), Exp-2c (uniform shuffle), Exp-3b (LA loss)}, selected exclusively by validation Macro-F1 from Kaggle results. If tied within bootstrap CI, the simpler recipe will be chosen. No Phase 4 Kaggle script will be written until this selection is complete.
-  - 7 unit tests verified passing in 	ests/test_hierarchical_loss.py.
+  - 7 unit tests verified passing in `tests/test_hierarchical_loss.py`.
+- **Phase 4.2 Specification (Targeted Supervised Contrastive Learning / TSC)**:
+  - Paper: Li et al., *"Targeted Supervised Contrastive Learning for Long-Tailed Recognition"*, **CVPR 2022** (arXiv:2111.13998).
+  - Official Codebase: `https://github.com/LTH14/targeted-supcon` (MIT License verified).
+  - Planning document: `docs/phase4_tsc_plan.md` (documents hypersphere target generation, pre-head normalized embedding attachment, exact loss formulation, and research uncertainties).
+  - Implementation: `generate_uniform_hypersphere_targets` and `TargetedSupervisedContrastiveLoss` in `src/losses/tsc.py`.
+  - 7 unit tests verified passing in `tests/test_tsc_loss.py` (verifying shape, gradient flow, unit norms, off-diagonal dot product near regular simplex $-0.10$, and reproducibility).
 - **Immediate Kaggle Execution Sequence**:
-  1. Exp-1 (ResNet-50 Baseline, 30 epochs, seed 42)
-  2. Exp-2c (PanDerm ViT Control Arm: uniform shuffling + label smoothing 0.1, 30 epochs, seed 42)
-  3. Exp-3b (PanDerm ViT: uniform shuffling + logit adjustment tau=1.0 + label smoothing 0.1, 30 epochs, seed 42)
+  1. **Exp-1**: ResNet-50 Baseline (class_balanced_ce, uniform shuffle, 30 epochs, seed 42) — Est: ~0.4 GPU-hours.
+  2. **Exp-2c (Seed 42)**: PanDerm ViT Control Arm (uniform shuffling + label smoothing 0.1, 30 epochs, seed 42) — Est: ~0.5 GPU-hours.
+  3. **Exp-2c (Seed 43)**: PanDerm ViT Control Arm (uniform shuffling + label smoothing 0.1, 30 epochs, seed 43) — Est: ~0.5 GPU-hours.
+  4. **Exp-3b**: PanDerm ViT Train-Time Logit Adjustment (uniform shuffling + LA loss tau=1.0 + label smoothing 0.1, 30 epochs, seed 42) — Est: ~0.5 GPU-hours.
+  - **Total Kaggle GPU Allocation**: ~1.9 GPU-hours.
+  - **Required Download Artifacts After Each Run**:
+    - `best_model.pt` (checkpoint containing model weights, epoch, and validation metrics)
+    - `metrics.json` (detailed per-class metrics, fairness metrics, confusion matrices)
+    - `summary_metrics.json` (compact headline summary with seed and split counts)
+    - `predictions_val.csv` (validation per-lesion raw logits, probabilities, and predictions)
+    - `predictions_test.csv` (held-out test per-lesion raw logits, probabilities, and predictions)
+    - `predictions.csv` (test predictions duplicate for backward compatibility)

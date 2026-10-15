@@ -80,16 +80,16 @@ def parse_args():
     parser.add_argument("--epochs", type=int, default=None, help="Override epochs")
     parser.add_argument("--num-workers", type=int, default=None, help="Override dataloader workers")
     parser.add_argument("--device", type=str, default=None, help="Override device ('cuda' or 'cpu')")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed (default: 42)")
     parser.add_argument("--online", action="store_true", help="Enable online W&B logging")
     parser.add_argument("--no-wandb", action="store_true", help="Disable W&B tracking completely")
     parser.add_argument("--smoke-test", action="store_true", help="Run 1-batch smoke test")
     return parser.parse_args()
 
 
-def run_exp1_kaggle(config: dict, smoke_test: bool = False, no_wandb: bool = False, online: bool = False):
+def run_exp1_kaggle(config: dict, smoke_test: bool = False, no_wandb: bool = False, online: bool = False, seed: int = 42):
     exp_cfg = config.get("experiment", {})
     exp_name = exp_cfg.get("name", "exp1-resnet50-baseline-kaggle")
-    seed = int(exp_cfg.get("seed", 42))
 
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -109,10 +109,17 @@ def run_exp1_kaggle(config: dict, smoke_test: bool = False, no_wandb: bool = Fal
     class_names = list(label_map.keys())
     num_classes = len(class_names)
 
-    # 3. Directories
+    # 3. Directories (include seed suffix when seed != 42)
     out_cfg = config.get("output", {})
-    checkpoint_dir = Path(out_cfg.get("checkpoint_dir", "/kaggle/working/checkpoints/exp1_resnet50")).resolve()
-    results_dir = Path(out_cfg.get("results_dir", "/kaggle/working/results/exp1_resnet50")).resolve()
+    suffix = f"_seed{seed}" if seed != 42 else ""
+    ckpt_dir_default = f"/kaggle/working/checkpoints/exp1_resnet50{suffix}"
+    res_dir_default = f"/kaggle/working/results/exp1_resnet50{suffix}"
+    checkpoint_dir = Path(out_cfg.get("checkpoint_dir", ckpt_dir_default)).resolve()
+    results_dir = Path(out_cfg.get("results_dir", res_dir_default)).resolve()
+    if seed != 42 and out_cfg.get("checkpoint_dir") and not str(checkpoint_dir).endswith(suffix):
+        checkpoint_dir = checkpoint_dir.parent / f"{checkpoint_dir.name}{suffix}"
+    if seed != 42 and out_cfg.get("results_dir") and not str(results_dir).endswith(suffix):
+        results_dir = results_dir.parent / f"{results_dir.name}{suffix}"
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
     results_dir.mkdir(parents=True, exist_ok=True)
 
@@ -306,10 +313,11 @@ def run_exp1_kaggle(config: dict, smoke_test: bool = False, no_wandb: bool = Fal
         class_names=class_names,
     )
 
+    test_prob_cols = [f"prob_{c}" for c in class_names]
     test_metrics = calculate_classification_metrics(
         y_true=df_test["true_label"].values,
         y_pred=df_test["pred_label"].values,
-        y_prob=df_test[val_prob_cols].values,
+        y_prob=df_test[test_prob_cols].values,
         class_names=class_names,
     )
 
@@ -321,6 +329,7 @@ def run_exp1_kaggle(config: dict, smoke_test: bool = False, no_wandb: bool = Fal
 
     # Save metrics JSONs
     metrics_data = {
+        "seed": seed,
         "val_overall": val_metrics,
         "test_overall": test_metrics,
         "subgroup_fairness": subgroup_metrics,
@@ -330,6 +339,7 @@ def run_exp1_kaggle(config: dict, smoke_test: bool = False, no_wandb: bool = Fal
 
     summary_data = {
         "experiment_name": exp_name,
+        "seed": seed,
         "runtime_info": runtime_info,
         "validation_overall": val_metrics,
         "test_overall": test_metrics,
@@ -339,7 +349,7 @@ def run_exp1_kaggle(config: dict, smoke_test: bool = False, no_wandb: bool = Fal
         json.dump(summary_data, f, indent=2)
 
     wb_logger.finish()
-    logger.info(f"[COMPLETED] Exp-1 Kaggle run finished in {runtime_info['total_training_time_formatted']}. Artifacts saved to {results_dir}")
+    logger.info(f"[COMPLETED] Exp-1 Kaggle run (seed={seed}) finished in {runtime_info['total_training_time_formatted']}. Artifacts saved to {results_dir}")
 
 
 def main():
@@ -369,7 +379,7 @@ def main():
     if args.device:
         config["device"] = args.device
 
-    run_exp1_kaggle(config, smoke_test=args.smoke_test, no_wandb=args.no_wandb, online=args.online)
+    run_exp1_kaggle(config, smoke_test=args.smoke_test, no_wandb=args.no_wandb, online=args.online, seed=args.seed)
 
 
 if __name__ == "__main__":

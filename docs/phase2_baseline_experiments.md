@@ -13,8 +13,7 @@ Phase 2 establishes the reference baseline benchmarks for multimodal dermatology
 
 1. **Exp-1: ResNet-50 CNN Baseline** (`exp1-resnet50-baseline`)  
    - ImageNet-pretrained standard convolutional architecture (25.5M parameters).
-   - Class-balanced Cross-Entropy loss ($w_c = \frac{N}{C \cdot N_c}$, normalized).
-   - **Status**: 1 epoch, local, not comparable. Trained for only 1 epoch (91.65s) on local RTX 2050 as an engineering smoke test. Standalone Kaggle 30-epoch training script packaged under `kaggle/run_exp1_resnet50.py`. **No backbone superiority or inferiority claim is made between ResNet-50 and PanDerm ViT until the full Kaggle Exp-1 run is executed.**
+   - **Status**: 1 epoch, local, not comparable. Trained for only 1 epoch (91.65s) on local RTX 2050 as an engineering smoke test. Standalone Kaggle 30-epoch training script packaged under `kaggle/run_exp1_resnet50.py`. **Confound Warning**: Exp-1 differs from Exp-2 in training recipe (class-balanced CE, unweighted sampler, no layer-wise LR decay, standard AdamW schedule) as well as backbone architecture (ResNet-50 vs ViT-Base). Any performance difference between Exp-1 and Exp-2 must NOT be described as a pure "backbone effect".
 2. **Exp-2 (v1): PanDerm ViT-Base Initial Fine-Tune** (`exp2-panderm-finetune`)  
    - Dermatology domain foundation model (Nature Medicine 2025, 86M parameters).
    - Standard fine-tuning recipe with unweighted sampler and step LR schedule.

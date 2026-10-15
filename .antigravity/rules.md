@@ -8,3 +8,4 @@
    - Report any auto-backgrounding event immediately to the user.
 3. **Smoke Tests & DataLoader Safety**: DataLoader `num_workers` must be 0 for any local smoke-test invocation, enforced directly in Python to prevent worker subprocess deadlocks on Windows.
 4. **Data Contract Integrity**: Never alter the lesion-level splitting contract (`data/splits/lesion_level_splits.csv`), class mapping indices (`configs/label_mapping.json`), or canonical class order across evaluation modules.
+5. **Reporting Table Integrity**: Every table in a report must be copied from a generated file (results/*.csv, docs/*.md, script stdout saved to a file). Never hand-type or re-assemble numbers in a chat summary. If a number was not produced by a command, label it as such or omit it.

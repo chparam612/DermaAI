@@ -118,6 +118,7 @@ def parse_args():
     parser.add_argument("--epochs", type=int, default=None)
     parser.add_argument("--batch-size", type=int, default=None)
     parser.add_argument("--lr", type=float, default=None)
+    parser.add_argument("--seed", type=int, default=42, help="Random seed (default: 42)")
     parser.add_argument("--online", action="store_true", help="Enable online W&B logging")
     parser.add_argument("--smoke-test", action="store_true", help="Run 1-batch verification test")
     return parser.parse_args()
@@ -154,7 +155,7 @@ def main():
     smoke_test = args.smoke_test
     exp_cfg = cfg.get("experiment", {})
     exp_name = exp_cfg.get("name", "exp2c-panderm-uniform")
-    seed = int(exp_cfg.get("seed", 42))
+    seed = args.seed if args.seed is not None else int(exp_cfg.get("seed", 42))
     set_seed(seed)
 
     data_cfg = cfg.get("data", {})
@@ -178,8 +179,15 @@ def main():
     label_smoothing = float(loss_cfg.get("label_smoothing", 0.1))
 
     out_cfg = cfg.get("output", {})
-    checkpoint_dir = Path(out_cfg.get("checkpoint_dir", "checkpoints/exp2c_panderm_uniform")).resolve()
-    results_dir = Path(out_cfg.get("results_dir", "results/exp2c_panderm_uniform")).resolve()
+    suffix = f"_seed{seed}" if seed != 42 else ""
+    default_ckpt = f"/kaggle/working/checkpoints/exp2c_panderm_uniform{suffix}"
+    default_res = f"/kaggle/working/results/exp2c_panderm_uniform{suffix}"
+    checkpoint_dir = Path(out_cfg.get("checkpoint_dir", default_ckpt)).resolve()
+    results_dir = Path(out_cfg.get("results_dir", default_res)).resolve()
+    if seed != 42 and out_cfg.get("checkpoint_dir") and not str(checkpoint_dir).endswith(suffix):
+        checkpoint_dir = checkpoint_dir.parent / f"{checkpoint_dir.name}{suffix}"
+    if seed != 42 and out_cfg.get("results_dir") and not str(results_dir).endswith(suffix):
+        results_dir = results_dir.parent / f"{results_dir.name}{suffix}"
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
     results_dir.mkdir(parents=True, exist_ok=True)
 
@@ -392,6 +400,7 @@ def main():
 
     # Save metrics JSONs
     metrics_data = {
+        "seed": seed,
         "val_overall": val_metrics,
         "test_overall": test_metrics,
         "subgroup_fairness": subgroup_metrics,
@@ -401,6 +410,7 @@ def main():
 
     summary_data = {
         "experiment_name": exp_name,
+        "seed": seed,
         "method": "Uniform Shuffling Control Arm (PanDerm ViT-Base)",
         "runtime_info": runtime_info,
         "validation_overall": val_metrics,
@@ -411,7 +421,7 @@ def main():
         json.dump(summary_data, f, indent=2)
 
     logger.info("=" * 80)
-    logger.info(f"EXP-2C EXECUTION COMPLETE: Test Top-1 Acc: {test_metrics['accuracy']:.4f} | Bal Acc: {test_metrics['balanced_accuracy']:.4f} | Macro-F1: {test_metrics['macro_f1']:.4f}")
+    logger.info(f"EXP-2C EXECUTION COMPLETE (seed={seed}): Test Top-1 Acc: {test_metrics['accuracy']:.4f} | Bal Acc: {test_metrics['balanced_accuracy']:.4f} | Macro-F1: {test_metrics['macro_f1']:.4f}")
     logger.info("=" * 80)
     wb_logger.finish()
 

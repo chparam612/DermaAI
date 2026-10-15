@@ -54,4 +54,5 @@
   - `results/ablation_table.csv` & `results/ablation_table.md`
   - `scripts/analyze_exp2_results.py`
   - `kaggle/run_exp1_resnet50.py` & `configs/experiments/exp1_resnet50_kaggle.yaml`
+- **Git Commit**: `b34c03e` ("Phase 2: Exp-2 PanDerm baseline evaluated and documented")
 - **Next Action**: Phase 3 Logit Adjustment (Exp-3a post-hoc locally on CPU + Exp-3b train-time Kaggle script).

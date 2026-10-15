@@ -148,6 +148,22 @@ Exp-2 v2 was fine-tuned using `WeightedRandomSampler`, where samples were drawn 
 ### 6.2 Predicted vs True Class Distributions
 Examining the output distributions on validation and test confirms that Exp-2 v2 was already outputting balanced predictions:
 
+#### Validation Split ($N=786$)
+| Class | Val True Count | Val True % | Exp-2 v2 Pred Count | Exp-2 v2 Pred % |
+| :--- | :---: | :---: | :---: | :---: |
+| **AKIEC** | 47 | 6.0% | 58 | 7.4% |
+| **BCC** | 374 | 47.6% | 333 | 42.4% |
+| **BEN_OTH** | 9 | 1.1% | 5 | 0.6% |
+| **BKL** | 79 | 10.1% | 90 | 11.5% |
+| **DF** | 8 | 1.0% | 9 | 1.1% |
+| **INF** | 7 | 0.9% | 6 | 0.8% |
+| **MAL_OTH** | 1 | 0.1% | 0 | 0.0% |
+| **MEL** | 58 | 7.4% | 74 | 9.4% |
+| **NV** | 126 | 16.0% | 104 | 13.2% |
+| **SCCKA** | 72 | 9.2% | 94 | 12.0% |
+| **VASC** | 5 | 0.6% | 13 | 1.7% |
+
+#### Test Split ($N=786$)
 | Class | Test True Count | Test True % | Exp-2 v2 Pred Count | Exp-2 v2 Pred % |
 | :--- | :---: | :---: | :---: | :---: |
 | **AKIEC** | 54 | 6.9% | 55 | 7.0% |
@@ -162,10 +178,12 @@ Examining the output distributions on validation and test confirms that Exp-2 v2
 | **SCCKA** | 69 | 8.8% | 106 | 13.5% |
 | **VASC** | 6 | 0.8% | 5 | 0.6% |
 
-Applying post-hoc logit adjustment $z_k - \tau \log \pi_k$ using the raw training imbalance prior $\pi_k$ assumes the model was trained with standard ERM under prior $\pi_k$. Subtracting $-\tau \log \pi_k$ on a model whose classification head was already trained on resampled balanced batches **double-corrects** for class imbalance, over-penalizing majority classes.
+Applying post-hoc logit adjustment $z_k - \tau \log \pi_k$ using the raw training imbalance prior $\pi_k$ assumes the model was trained with standard ERM under prior $\pi_k$. Subtracting $-\tau \log \pi_k$ on a model whose classification head was already trained on resampled balanced batches double-corrects for class imbalance, over-penalizing majority classes.
 
-### 6.3 Mechanism Status
-Whether the frozen backbone exhibits internal feature representation collapse on rare classes is **not established**, as latent feature geometries have not been directly probed via probing classifiers or linear CKA. What is established is that post-hoc adjustment cannot alter fixed representations and double-corrects resampled models.
+### 6.3 Mechanism Status & Scientific Downgrade
+Double-correction is **supported by mechanism (WeightedRandomSampler confirmed) and BCC under-prediction; to be tested by controlled Exp-2c vs Exp-3b**. 
+
+Whether the frozen backbone exhibits internal feature representation collapse on rare classes is **not established**, as latent feature geometries have not been directly probed via probing classifiers or linear CKA. Controlled comparison between Exp-2c (uniform shuffle baseline) and Exp-3b (uniform shuffle + train-time LA loss) will provide the definitive test of whether loss-level logit adjustment outperforms balanced resampling without confounding.
 
 ---
 

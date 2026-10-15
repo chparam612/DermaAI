@@ -154,7 +154,7 @@ def build_ablation_table(
                 "macro_f1": round(float(f1), 4),
                 "malignant_recall": round(float(mal_rec), 4),
                 "auroc": auroc_str,
-                "notes": f"NULL result (Delta F1 CI includes 0; double-corrects resampled model; MEL +1.49% is 1 lesion; tau*={tau_val:.2f})",
+                "notes": f"NULL result (Delta F1 CI includes 0; double-correction supported by mechanism; MEL +1.49% is 1 lesion; tau*={tau_val:.2f})",
             })
 
     # Exp-3b: Train-Time Logit Adjustment (Menon et al., ICLR 2021)

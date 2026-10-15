@@ -56,7 +56,7 @@
        - $\Delta \text{Balanced Acc}$: $-0.0014$ $[-0.006, +0.004]$ (**NULL result**, CI spans 0).
        - Melanoma (`MEL`) Recall: $70.15\%$ vs $68.66\%$ ($+1.49\%$, exactly **ONE** flipped lesion out of 67; 95% CI $[+0.000, +0.030]$).
        - 3-Bucket Malignant FNR Disparity: numerical gap shifted from $6.06\%$ to $4.94\%$; **not statistically reliable** because Dark bucket has $n=12$ where a single flipped lesion moves FNR by $\sim 8.3\%$.
-     - Diagnostic: Exp-2 v2 was fine-tuned using `WeightedRandomSampler` (balanced batches $\approx 1/11$ per class). Post-hoc logit adjustment with the empirical imbalance prior double-corrects an already-resampled model. Latent feature representation collapse is not established.
+     - Diagnostic: Exp-2 v2 was fine-tuned using `WeightedRandomSampler` (balanced batches $\approx 1/11$ per class). Double-correction is supported by mechanism (WeightedRandomSampler confirmed) and BCC under-prediction; to be tested by controlled Exp-2c vs Exp-3b. Latent feature representation collapse is not established.
   2. **Exp-3b: Train-Time Logit Adjustment (Loss-Level)**:
      - Implemented `LogitAdjustedCrossEntropy` with label smoothing in `src/losses/classification.py`.
      - 6 unit tests passing in `tests/test_losses.py` (51 total repository tests passing).
@@ -74,14 +74,24 @@
 ---
 
 ### Phase 4: Hierarchical Loss & Two-Stage Classification (In Progress)
-- **Status**: Phase 4.1 Prepared (Code & Unit Tests Verified; No Kaggle Run)
-- **Phase 4.1: Asymmetric Hierarchical Cost Loss**:
-  - Implemented `AsymmetricHierarchicalCostLoss` and `build_asymmetric_cost_matrix` in `src/losses/hierarchical.py`.
-  - Clinical error penalties: $c_{\text{fn}} = 5.0$ (Malignant $\to$ Benign, missed cancer), $c_{\text{fp}} = 1.5$ (Benign $\to$ Malignant), $c_{\text{within\_mal}} = 1.0$, $c_{\text{within\_ben}} = 0.5$.
-  - 7 unit tests verified in `tests/test_hierarchical_loss.py`.
-- **Master Plan Roadmap**:
+- **Master Plan Order Decision**: Explicit decision confirmed to retain original MASTER_PLAN order:
   - **Phase 4**: Hierarchical Loss + Two-Stage Classification (TSC)
   - **Phase 5**: Calibration & Reliability Triage
   - **Phase 6**: Multimodal Dual-Image Fusion (Dermoscopic + Clinical Close-up)
-- **Next Action**: Execute Exp-3b and Exp-1 30-epoch runs on Kaggle GPU.
-
+- **Rationale**:
+  1. The hierarchical loss module is already implemented, computationally cheap, and directly targets the 58 out of 64 missed malignancies that leak into benign attractor states (BKL/NV).
+  2. Dual-image fusion on MILK10k already exists in prior literature; the novel methodological contribution of this research is the cost-sensitive loss, demographic fairness auditing, and calibration triage framework.
+- **Phase 4.1 Specification**:
+  - Implemented AsymmetricHierarchicalCostLoss and uild_asymmetric_cost_matrix in src/losses/hierarchical.py.
+  - Cost matrix entries ({\\text{fn}}=5.0, c_{\\text{fp}}=1.5, c_{\\text{within\\_mal}}=1.0, c_{\\text{within\\_ben}}=0.5$) are explicitly treated as **unvalidated clinical hypotheses**.
+  - Planned hyperparameter $\\alpha$ sweep: $\\alpha \\in \\{0.25, 0.5, 1.0, 2.0\\}$ tuned strictly on the VALIDATION split (=786$).
+  - Mandatory reporting contract for all Phase 4 runs:
+    1. Malignant False Negative Rate (FNR) with 95% bootstrap CI.
+    2. Malignant Specificity & False-Positive lesion count.
+    3. Macro-F1 with paired bootstrap CI against the base recipe.
+  - **Base Recipe Selection Protocol**: Phase 4 will build on the winning base recipe among {Exp-2 v2 (weighted sampler), Exp-2c (uniform shuffle), Exp-3b (LA loss)}, selected exclusively by validation Macro-F1 from Kaggle results. If tied within bootstrap CI, the simpler recipe will be chosen. No Phase 4 Kaggle script will be written until this selection is complete.
+  - 7 unit tests verified passing in 	ests/test_hierarchical_loss.py.
+- **Immediate Kaggle Execution Sequence**:
+  1. Exp-1 (ResNet-50 Baseline, 30 epochs, seed 42)
+  2. Exp-2c (PanDerm ViT Control Arm: uniform shuffling + label smoothing 0.1, 30 epochs, seed 42)
+  3. Exp-3b (PanDerm ViT: uniform shuffling + logit adjustment tau=1.0 + label smoothing 0.1, 30 epochs, seed 42)

@@ -268,12 +268,13 @@ def main():
         mode="max",
         max_keep=int(out_cfg.get("max_keep", 2)),
     )
-    offline_mode = not args.online
+    wandb_mode = "online" if args.online else "offline"
     wb_logger = WandbLogger(
         project=cfg.get("wandb", {}).get("project", "SkinCancerTracker"),
-        name=exp_name,
+        experiment_name=f"{exp_name}_seed{seed}",
         config=cfg,
-        offline=offline_mode,
+        enabled=True,
+        mode=wandb_mode,
     )
 
     # 12. Training Loop

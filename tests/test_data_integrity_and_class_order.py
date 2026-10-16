@@ -133,7 +133,7 @@ def test_prediction_files_alignment():
 
     if preds_val_path.is_file() and ckpt_path.is_file():
         df_val = pd.read_csv(preds_val_path)
-        ckpt = torch.load(ckpt_path, map_location="cpu")
+        ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
         ckpt_val_dist = ckpt.get("metrics", {}).get("val_prediction_distribution", {})
 
         for idx, cls in enumerate(classes):

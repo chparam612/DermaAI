@@ -324,7 +324,6 @@ def run_exp1_kaggle(config: dict, smoke_test: bool = False, no_wandb: bool = Fal
     subgroup_metrics = calculate_subgroup_metrics(
         df_predictions=df_test,
         subgroup_col="skin_tone_class",
-        class_names=class_names,
     )
 
     # Save metrics JSONs

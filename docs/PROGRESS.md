@@ -111,3 +111,18 @@
     - `predictions_val.csv` (validation per-lesion raw logits, probabilities, and predictions)
     - `predictions_test.csv` (held-out test per-lesion raw logits, probabilities, and predictions)
     - `predictions.csv` (test predictions duplicate for backward compatibility)
+- **Kaggle Execution Notebooks (Generated & Validated)**:
+  - `notebooks/kaggle_exp1_resnet50.ipynb`: Standard CNN baseline (ResNet-50 ImageNet-pretrained, uniform shuffle, class-balanced CE, 30 epochs).
+  - `notebooks/kaggle_exp2c_panderm_uniform.ipynb`: PanDerm ViT-Base control arm (uniform shuffling + label smoothing 0.1, 30 epochs). Supports seed override (seed 42 and seed 43).
+  - `notebooks/kaggle_exp3b_panderm_logit_adj.ipynb`: PanDerm ViT-Base train-time logit adjustment (tau=1.0, uniform shuffling, label smoothing 0.1, 30 epochs).
+  - **Gates Implemented in Every Notebook**:
+    1. GPU hardware availability gate (asserts CUDA present and VRAM >= 14GB).
+    2. Split SHA-256 hash gate (asserts exact hash `a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36`).
+    3. Architecture and checkpoint gate (for PanDerm notebooks: official VisionTransformer, zero unexpected keys, only head keys missing, no fallback to timm; for Exp-1: clean timm ResNet-50 instantiation).
+  - **Post-Training Seed & Packaging Verification**:
+    - Reads back `metrics.json`, verifies recorded seed equals `SEED` variable.
+    - Prints summary evaluation metrics and per-class performance breakdown.
+    - Packages only evaluation artifacts into `{exp_name}_artifacts.zip` (`predictions_val.csv`, `predictions_test.csv`, `metrics.json`, `summary_metrics.json`, `training_curves.json`) without `best_model.pt`.
+  - **Packaging Integrity**:
+    - Updated `scripts/prepare_kaggle_upload.py` to enforce presence of all 3 Kaggle execution scripts and configs in `codebase.zip`.
+    - Package integrity verified: all 72 repository unit tests pass inside the extracted package in an isolated temporary directory.

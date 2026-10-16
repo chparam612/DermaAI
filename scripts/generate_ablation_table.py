@@ -73,7 +73,7 @@ def build_ablation_table(
             "macro_f1": round(float(f1), 4),
             "malignant_recall": round(float(mal_rec), 4),
             "auroc": auroc_str,
-            "notes": "Standard CNN baseline, ImageNet weights (class-balanced CE, unweighted sampler; differs from Exp-2 in training recipe as well as backbone; not a pure backbone effect)",
+            "notes": "30-epoch run, seed 42, Kaggle T4 (ImageNet ResNet-50, class-balanced CE, unweighted sampler; differs from Exp-2 in training recipe as well as backbone; not a pure backbone effect)",
         })
     else:
         msg = f"Could not find Exp-1 metrics at {exp1_summary_path}"
@@ -214,8 +214,8 @@ def main():
     parser.add_argument(
         "--exp1-dir",
         type=str,
-        default="results/exp1_baseline",
-        help="Directory containing Exp-1 results (default: results/exp1_baseline)",
+        default="results/exp1_resnet50_seed42",
+        help="Directory containing Exp-1 results (default: results/exp1_resnet50_seed42)",
     )
     parser.add_argument(
         "--exp2-dir",

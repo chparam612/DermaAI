@@ -114,7 +114,8 @@ def main():
     )
 
     # Load weights
-    checkpoint = torch.load(args.checkpoint, map_location=args.device)
+    # Checkpoints are produced by this repo and are trusted local files; never use this for untrusted files.
+    checkpoint = torch.load(args.checkpoint, map_location=args.device, weights_only=False)
     state_dict = checkpoint.get("model_state_dict", checkpoint)
     model.load_state_dict(state_dict)
 

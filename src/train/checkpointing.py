@@ -5,10 +5,24 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
+import numpy as np
 import torch
 import torch.nn as nn
 
 logger = logging.getLogger(__name__)
+
+
+def _sanitize_metrics(obj: Any) -> Any:
+    """Recursively convert numpy scalars/types to standard Python types for safe serialization."""
+    if isinstance(obj, np.generic):
+        return obj.item()
+    if isinstance(obj, np.ndarray):
+        return obj.item() if obj.ndim == 0 else [_sanitize_metrics(x) for x in obj.tolist()]
+    if isinstance(obj, dict):
+        return {k: _sanitize_metrics(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_sanitize_metrics(x) for x in obj]
+    return obj
 
 
 class CheckpointManager:
@@ -69,11 +83,12 @@ class CheckpointManager:
             filename = f"checkpoint_epoch_{epoch}.pt"
 
         save_path = self.checkpoint_dir / filename
+        sanitized_metrics = _sanitize_metrics(metrics)
         state = {
             "epoch": epoch,
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict() if optimizer is not None else None,
-            "metrics": metrics,
+            "metrics": sanitized_metrics,
         }
         torch.save(state, save_path)
         logger.info(f"Saved checkpoint to {save_path}")
@@ -91,7 +106,7 @@ class CheckpointManager:
                         logger.warning(f"Could not delete old checkpoint {oldest}: {e}")
 
         # Check if this is the best so far
-        metric_val = metrics.get(self.monitor)
+        metric_val = sanitized_metrics.get(self.monitor)
         if metric_val is not None and self.is_better(metric_val):
             self.best_metric_value = metric_val
             best_path = self.checkpoint_dir / "best_model.pt"
@@ -124,7 +139,8 @@ class CheckpointManager:
         if not path.is_file():
             raise FileNotFoundError(f"Checkpoint not found at: {path}")
 
-        state = torch.load(path, map_location="cpu")
+        # Checkpoints are produced by this repo and are trusted local files; never use this for untrusted files.
+        state = torch.load(path, map_location="cpu", weights_only=False)
         model.load_state_dict(state["model_state_dict"])
         if optimizer is not None and state.get("optimizer_state_dict") is not None:
             optimizer.load_state_dict(state["optimizer_state_dict"])

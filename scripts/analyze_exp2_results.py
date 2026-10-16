@@ -120,7 +120,8 @@ print("\n" + "=" * 80)
 print("5. VALIDATION VS TEST GAP")
 print("=" * 80)
 import torch
-ckpt = torch.load(CKPT_FILE, map_location="cpu")
+# Checkpoints are produced by this repo and are trusted local files; never use this for untrusted files.
+ckpt = torch.load(CKPT_FILE, map_location="cpu", weights_only=False)
 val_m = ckpt.get("metrics", {})
 print(f"Best Checkpoint Epoch:   {ckpt.get('epoch')}")
 print(f"Train Loss:              {val_m.get('train_loss'):.4f}")

@@ -71,7 +71,8 @@ print("4. PREDICTION DISTRIBUTIONS & CHECKPOINT COMPARISON (Exp-2 v2)")
 print("=" * 80)
 
 ckpt_path = PROJECT_ROOT / "checkpoints" / "exp2_panderm_v2" / "best_model.pt"
-ckpt = torch.load(ckpt_path, map_location="cpu")
+# Checkpoints are produced by this repo and are trusted local files; never use this for untrusted files.
+ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
 ckpt_metrics = ckpt.get("metrics", {})
 ckpt_val_dist = ckpt_metrics.get("val_prediction_distribution", {})
 print(f"Checkpoint Best Epoch: {ckpt.get('epoch')}")

@@ -185,7 +185,22 @@ def build_ablation_table(
 
     # Exp-2c: PanDerm ViT-Base Control Arm (Uniform Shuffling, Seeds 42 and 43)
     exp2c_records = []
-    exp2c_notes = "uniform shuffling, no weighted sampler; seed 42 evaluation re-run from best_model.pt after a torch.load error; runtime_info not valid"
+
+    def _get_best_epoch(summary_path: Path) -> Optional[int]:
+        dir_path = summary_path if summary_path.is_dir() else summary_path.parent
+        for tc_path in [dir_path / "training_curves.json", *dir_path.rglob("training_curves.json")]:
+            if tc_path.is_file():
+                try:
+                    with open(tc_path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    val_f1 = data.get("val_macro_f1", [])
+                    epochs = data.get("epochs", [])
+                    if val_f1 and epochs and len(val_f1) == len(epochs):
+                        best_idx = max(range(len(val_f1)), key=lambda i: val_f1[i])
+                        return int(epochs[best_idx])
+                except Exception:
+                    pass
+        return None
 
     # Exp-2c seed 42
     if exp2c_seed42_summary_path:
@@ -198,6 +213,9 @@ def build_ablation_table(
             auroc42 = float(m42.get("macro_auroc", 0.0))
             mal_auroc42 = float(m42.get("malignant_auroc", 0.0))
             auroc_str42 = f"{auroc42:.4f} (mal: {mal_auroc42:.4f})" if mal_auroc42 > 0 else f"{auroc42:.4f}"
+            ep42 = _get_best_epoch(exp2c_seed42_summary_path)
+            ep42_str = f" (epoch {ep42})" if ep42 is not None else ""
+            notes42 = f"uniform shuffling, no weighted sampler; evaluation re-run from best_model.pt{ep42_str} after a torch.load error; runtime_info not valid"
             records.append({
                 "exp_id": "Exp-2c (seed 42)",
                 "model": "PanDerm ViT-Base",
@@ -206,7 +224,7 @@ def build_ablation_table(
                 "macro_f1": round(f1_42, 4),
                 "malignant_recall": round(rec42, 4),
                 "auroc": auroc_str42,
-                "notes": exp2c_notes,
+                "notes": notes42,
             })
             exp2c_records.append({
                 "acc": acc42,
@@ -229,6 +247,9 @@ def build_ablation_table(
             auroc43 = float(m43.get("macro_auroc", 0.0))
             mal_auroc43 = float(m43.get("malignant_auroc", 0.0))
             auroc_str43 = f"{auroc43:.4f} (mal: {mal_auroc43:.4f})" if mal_auroc43 > 0 else f"{auroc43:.4f}"
+            ep43 = _get_best_epoch(exp2c_seed43_summary_path)
+            ep43_str = f", best epoch {ep43}" if ep43 is not None else ""
+            notes43 = f"uniform shuffling, no weighted sampler; ran end to end with checkpoint fix{ep43_str}"
             records.append({
                 "exp_id": "Exp-2c (seed 43)",
                 "model": "PanDerm ViT-Base",
@@ -237,7 +258,7 @@ def build_ablation_table(
                 "macro_f1": round(f1_43, 4),
                 "malignant_recall": round(rec43, 4),
                 "auroc": auroc_str43,
-                "notes": exp2c_notes,
+                "notes": notes43,
             })
             exp2c_records.append({
                 "acc": acc43,
@@ -264,6 +285,7 @@ def build_ablation_table(
         m_mal_auroc, s_mal_auroc = np.mean(mal_auroc_vals), np.std(mal_auroc_vals, ddof=1)
 
         mean_auroc_str = f"{m_auroc:.4f} \u00b1 {s_auroc:.4f} (mal: {m_mal_auroc:.4f} \u00b1 {s_mal_auroc:.4f})"
+        notes_mean = "mean and sample std over seeds 42 and 43; seed 42 evaluated via re-run from best checkpoint"
 
         records.append({
             "exp_id": "Exp-2c mean (n=2)",
@@ -273,7 +295,7 @@ def build_ablation_table(
             "macro_f1": f"{m_f1:.4f} \u00b1 {s_f1:.4f}",
             "malignant_recall": f"{m_rec:.4f} \u00b1 {s_rec:.4f}",
             "auroc": mean_auroc_str,
-            "notes": exp2c_notes,
+            "notes": notes_mean,
         })
 
     # Exp-3b: Train-Time Logit Adjustment (Menon et al., ICLR 2021)

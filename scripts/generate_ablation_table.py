@@ -34,26 +34,23 @@ def load_metrics_from_summary(summary_path: Path) -> Optional[Dict[str, Any]]:
     resolved_path: Optional[Path] = None
     if summary_path.is_file():
         resolved_path = summary_path
-    elif summary_path.is_dir():
-        direct = summary_path / "summary_metrics.json"
+    else:
+        dir_to_search = summary_path if summary_path.is_dir() else summary_path.parent
+        direct = dir_to_search / "summary_metrics.json"
         if direct.is_file():
             resolved_path = direct
         else:
-            for sub in summary_path.rglob("summary_metrics.json"):
+            for sub in dir_to_search.rglob("summary_metrics.json"):
                 resolved_path = sub
                 break
             if resolved_path is None:
-                direct_m = summary_path / "metrics.json"
+                direct_m = dir_to_search / "metrics.json"
                 if direct_m.is_file():
                     resolved_path = direct_m
                 else:
-                    for sub_m in summary_path.rglob("metrics.json"):
+                    for sub_m in dir_to_search.rglob("metrics.json"):
                         resolved_path = sub_m
                         break
-    else:
-        alt_path = summary_path.parent / "metrics.json"
-        if alt_path.is_file():
-            resolved_path = alt_path
 
     if resolved_path is None or not resolved_path.is_file():
         return None
@@ -67,6 +64,26 @@ def load_metrics_from_summary(summary_path: Path) -> Optional[Dict[str, Any]]:
         return data
 
 
+def _get_best_epoch(summary_path: Optional[Path]) -> Optional[int]:
+    """Attempt to find best epoch from training_curves.json in the summary directory."""
+    if summary_path is None:
+        return None
+    dir_path = summary_path if summary_path.is_dir() else summary_path.parent
+    for tc_path in [dir_path / "training_curves.json", *dir_path.rglob("training_curves.json")]:
+        if tc_path.is_file():
+            try:
+                with open(tc_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                val_f1 = data.get("val_macro_f1", [])
+                epochs = data.get("epochs", [])
+                if val_f1 and epochs and len(val_f1) == len(epochs):
+                    best_idx = max(range(len(val_f1)), key=lambda i: val_f1[i])
+                    return int(epochs[best_idx])
+            except Exception:
+                pass
+    return None
+
+
 def build_ablation_table(
     exp1_summary_path: Path,
     exp2_summary_path: Path,
@@ -76,36 +93,110 @@ def build_ablation_table(
     exp3b_summary_path: Optional[Path] = None,
     exp2c_seed42_summary_path: Optional[Path] = None,
     exp2c_seed43_summary_path: Optional[Path] = None,
+    exp1_seed43_summary_path: Optional[Path] = None,
     strict: bool = False,
 ) -> pd.DataFrame:
-    """Compile ablation table from Exp-1, Exp-2, Exp-3a, and Exp-3b metrics."""
+    """Compile ablation table from Exp-1, Exp-2, Exp-3a, Exp-2c, and Exp-3b metrics."""
     records = []
 
-    # Exp-1
-    exp1_data = load_metrics_from_summary(exp1_summary_path)
-    if exp1_data:
-        m1 = exp1_data.get("test_overall", {})
-        acc = m1.get("accuracy", 0.0)
-        f1 = m1.get("macro_f1", 0.0)
-        mal_rec = m1.get("malignant_recall", 0.0)
-        auroc = m1.get("macro_auroc", 0.0)
-        mal_auroc = m1.get("malignant_auroc", 0.0)
-        auroc_str = f"{auroc:.4f} (mal: {mal_auroc:.4f})" if mal_auroc > 0 else f"{auroc:.4f}"
+    # Exp-1: ResNet-50 (Seeds 42 and 43)
+    exp1_records = []
+
+    # Exp-1 seed 42
+    if exp1_summary_path:
+        exp1_data = load_metrics_from_summary(exp1_summary_path)
+        if exp1_data:
+            m1 = exp1_data.get("test_overall", {})
+            acc42 = float(m1.get("accuracy", 0.0))
+            f1_42 = float(m1.get("macro_f1", 0.0))
+            rec42 = float(m1.get("malignant_recall", 0.0))
+            auroc42 = float(m1.get("macro_auroc", 0.0))
+            mal_auroc42 = float(m1.get("malignant_auroc", 0.0))
+            auroc_str42 = f"{auroc42:.4f} (mal: {mal_auroc42:.4f})" if mal_auroc42 > 0 else f"{auroc42:.4f}"
+            records.append({
+                "exp_id": "Exp-1 (seed 42)",
+                "model": "ResNet-50",
+                "modality": "Dermoscopic",
+                "accuracy": round(acc42, 4),
+                "macro_f1": round(f1_42, 4),
+                "malignant_recall": round(rec42, 4),
+                "auroc": auroc_str42,
+                "notes": "30-epoch run, seed 42, Kaggle T4 (ImageNet ResNet-50, class-balanced CE, unweighted sampler; differs from Exp-2 in training recipe as well as backbone; not a pure backbone effect)",
+            })
+            exp1_records.append({
+                "acc": acc42,
+                "f1": f1_42,
+                "rec": rec42,
+                "auroc": auroc42,
+                "mal_auroc": mal_auroc42,
+            })
+        else:
+            msg = f"Could not find Exp-1 (seed 42) metrics at {exp1_summary_path}"
+            if strict:
+                raise FileNotFoundError(msg)
+            logger.warning(msg)
+
+    # Exp-1 seed 43
+    if exp1_seed43_summary_path:
+        exp1_43_data = load_metrics_from_summary(exp1_seed43_summary_path)
+        if exp1_43_data:
+            m1_43 = exp1_43_data.get("test_overall", {})
+            acc43 = float(m1_43.get("accuracy", 0.0))
+            f1_43 = float(m1_43.get("macro_f1", 0.0))
+            rec43 = float(m1_43.get("malignant_recall", 0.0))
+            auroc43 = float(m1_43.get("macro_auroc", 0.0))
+            mal_auroc43 = float(m1_43.get("malignant_auroc", 0.0))
+            auroc_str43 = f"{auroc43:.4f} (mal: {mal_auroc43:.4f})" if mal_auroc43 > 0 else f"{auroc43:.4f}"
+            ep1_43 = _get_best_epoch(exp1_seed43_summary_path)
+            ep1_43_str = f", best epoch {ep1_43}" if ep1_43 is not None else ""
+            notes1_43 = f"30-epoch run, seed 43, Kaggle T4{ep1_43_str}"
+            records.append({
+                "exp_id": "Exp-1 (seed 43)",
+                "model": "ResNet-50",
+                "modality": "Dermoscopic",
+                "accuracy": round(acc43, 4),
+                "macro_f1": round(f1_43, 4),
+                "malignant_recall": round(rec43, 4),
+                "auroc": auroc_str43,
+                "notes": notes1_43,
+            })
+            exp1_records.append({
+                "acc": acc43,
+                "f1": f1_43,
+                "rec": rec43,
+                "auroc": auroc43,
+                "mal_auroc": mal_auroc43,
+            })
+        elif strict:
+            raise FileNotFoundError(f"Could not find Exp-1 (seed 43) metrics at {exp1_seed43_summary_path}")
+
+    # Exp-1 mean (n=2)
+    if len(exp1_records) >= 2:
+        acc_vals = [r["acc"] for r in exp1_records]
+        f1_vals = [r["f1"] for r in exp1_records]
+        rec_vals = [r["rec"] for r in exp1_records]
+        auroc_vals = [r["auroc"] for r in exp1_records]
+        mal_auroc_vals = [r["mal_auroc"] for r in exp1_records]
+
+        m_acc, s_acc = np.mean(acc_vals), np.std(acc_vals, ddof=1)
+        m_f1, s_f1 = np.mean(f1_vals), np.std(f1_vals, ddof=1)
+        m_rec, s_rec = np.mean(rec_vals), np.std(rec_vals, ddof=1)
+        m_auroc, s_auroc = np.mean(auroc_vals), np.std(auroc_vals, ddof=1)
+        m_mal_auroc, s_mal_auroc = np.mean(mal_auroc_vals), np.std(mal_auroc_vals, ddof=1)
+
+        mean_auroc_str = f"{m_auroc:.4f} \u00b1 {s_auroc:.4f} (mal: {m_mal_auroc:.4f} \u00b1 {s_mal_auroc:.4f})"
+        notes_mean = "mean and sample std over seeds 42 and 43"
+
         records.append({
-            "exp_id": "Exp-1",
+            "exp_id": "Exp-1 mean (n=2)",
             "model": "ResNet-50",
             "modality": "Dermoscopic",
-            "accuracy": round(float(acc), 4),
-            "macro_f1": round(float(f1), 4),
-            "malignant_recall": round(float(mal_rec), 4),
-            "auroc": auroc_str,
-            "notes": "30-epoch run, seed 42, Kaggle T4 (ImageNet ResNet-50, class-balanced CE, unweighted sampler; differs from Exp-2 in training recipe as well as backbone; not a pure backbone effect)",
+            "accuracy": f"{m_acc:.4f} \u00b1 {s_acc:.4f}",
+            "macro_f1": f"{m_f1:.4f} \u00b1 {s_f1:.4f}",
+            "malignant_recall": f"{m_rec:.4f} \u00b1 {s_rec:.4f}",
+            "auroc": mean_auroc_str,
+            "notes": notes_mean,
         })
-    else:
-        msg = f"Could not find Exp-1 metrics at {exp1_summary_path}"
-        if strict:
-            raise FileNotFoundError(msg)
-        logger.warning(msg)
 
     # Exp-2 v1 (original unweighted collapse run)
     exp2_data = load_metrics_from_summary(exp2_summary_path)
@@ -185,22 +276,6 @@ def build_ablation_table(
 
     # Exp-2c: PanDerm ViT-Base Control Arm (Uniform Shuffling, Seeds 42 and 43)
     exp2c_records = []
-
-    def _get_best_epoch(summary_path: Path) -> Optional[int]:
-        dir_path = summary_path if summary_path.is_dir() else summary_path.parent
-        for tc_path in [dir_path / "training_curves.json", *dir_path.rglob("training_curves.json")]:
-            if tc_path.is_file():
-                try:
-                    with open(tc_path, "r", encoding="utf-8") as f:
-                        data = json.load(f)
-                    val_f1 = data.get("val_macro_f1", [])
-                    epochs = data.get("epochs", [])
-                    if val_f1 and epochs and len(val_f1) == len(epochs):
-                        best_idx = max(range(len(val_f1)), key=lambda i: val_f1[i])
-                        return int(epochs[best_idx])
-                except Exception:
-                    pass
-        return None
 
     # Exp-2c seed 42
     if exp2c_seed42_summary_path:
@@ -354,9 +429,17 @@ def main():
     parser = argparse.ArgumentParser(description="Generate ablation table for Phase 2 experiments.")
     parser.add_argument(
         "--exp1-dir",
+        "--exp1-seed42-dir",
+        dest="exp1_dir",
         type=str,
         default="results/exp1_resnet50_seed42",
-        help="Directory containing Exp-1 results (default: results/exp1_resnet50_seed42)",
+        help="Directory containing Exp-1 seed 42 results (default: results/exp1_resnet50_seed42)",
+    )
+    parser.add_argument(
+        "--exp1-seed43-dir",
+        type=str,
+        default="results/exp1_resnet50_seed43",
+        help="Directory containing Exp-1 seed 43 results (default: results/exp1_resnet50_seed43)",
     )
     parser.add_argument(
         "--exp2-dir",
@@ -408,7 +491,8 @@ def main():
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
-    exp1_summary = Path(args.exp1_dir) / "summary_metrics.json"
+    exp1_summary = Path(args.exp1_dir) if args.exp1_dir else None
+    exp1_s43_summary = Path(args.exp1_seed43_dir) if args.exp1_seed43_dir else None
     exp2_summary = Path(args.exp2_dir) / "summary_metrics.json"
     exp2_v2_summary = (Path(args.exp2_v2_dir) / "summary_metrics.json") if args.exp2_v2_dir else None
     exp3a_summary = (Path(args.exp3a_dir) / "summary_metrics.json") if args.exp3a_dir else None
@@ -426,6 +510,7 @@ def main():
         exp3b_summary_path=exp3b_summary,
         exp2c_seed42_summary_path=exp2c_s42_summary,
         exp2c_seed43_summary_path=exp2c_s43_summary,
+        exp1_seed43_summary_path=exp1_s43_summary,
         strict=args.strict,
     )
     print("\n" + "=" * 70)

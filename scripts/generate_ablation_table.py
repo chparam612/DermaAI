@@ -385,7 +385,7 @@ def build_ablation_table(
 
     # Exp-3b: Train-Time Logit Adjustment (Menon et al., ICLR 2021)
     exp3b_records = []
-    notes3b = "train-time logit adjustment, planned tau=1.0; BCC recall 0.0 (391 test lesions), accuracy collapse"
+    notes3b = "train-time logit adjustment, planned tau=1.0; BCC recall 0.0 (391 test lesions), accuracy collapse; best epoch 25"
 
     # Exp-3b seed 42
     if exp3b_summary_path and (exp3b_summary_path.is_file() or (exp3b_summary_path.parent / "metrics.json").is_file() or exp3b_summary_path.is_dir()):
@@ -419,7 +419,7 @@ def build_ablation_table(
             raise FileNotFoundError(f"Could not find Exp-3b (seed 42) metrics at {exp3b_summary_path}")
 
     # Exp-3b seed 43
-    notes3b_43 = "train-time logit adjustment, planned tau=1.0; BCC recall 0.0 (391 test lesions), accuracy collapse; best epoch 25 (verify from training_curves.json)"
+    notes3b_43 = "train-time logit adjustment, planned tau=1.0; BCC recall 0.0 (391 test lesions), accuracy collapse; best epoch 25"
     if exp3b_seed43_summary_path and exp3b_seed43_summary_path.exists():
         d3b_43 = load_metrics_from_summary(exp3b_seed43_summary_path)
         if d3b_43:

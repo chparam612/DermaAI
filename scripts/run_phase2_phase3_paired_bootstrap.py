@@ -67,7 +67,9 @@ def run_paired_bootstrap(
     exp_dirs: Dict[str, Path],
     n_boot: int = 2000,
     seed: int = 42,
+    cluster_col: Optional[str] = None,
     output_dir: Optional[Path] = None,
+    output_suffix: str = "",
 ) -> Dict[str, Any]:
     """Execute paired bootstrap evaluation across Exp-1, Exp-2c, and Exp-3b."""
     logger.info("Loading test predictions for 6 experimental runs...")
@@ -78,9 +80,35 @@ def run_paired_bootstrap(
     ref_key = "exp1_seed42"
     ref_df = dfs[ref_key]
     n_samples = len(ref_df)
+
+    # Check cluster / lesion uniqueness
+    cluster_info = {}
+    if cluster_col is not None and cluster_col in ref_df.columns:
+        n_unique_clusters = int(ref_df[cluster_col].nunique())
+        cluster_info = {
+            "cluster_col": cluster_col,
+            "n_unique_clusters": n_unique_clusters,
+            "n_samples": n_samples,
+            "has_duplicate_clusters": bool(n_unique_clusters < n_samples),
+            "duplicates_count": n_samples - n_unique_clusters,
+        }
+        logger.info(
+            f"Cluster analysis on '{cluster_col}': {n_unique_clusters} unique clusters out of {n_samples} rows "
+            f"(duplicates={cluster_info['duplicates_count']})."
+        )
+    else:
+        cluster_info = {
+            "cluster_col": None,
+            "n_unique_clusters": n_samples,
+            "n_samples": n_samples,
+            "has_duplicate_clusters": False,
+            "duplicates_count": 0,
+        }
+
     alignment_report = {
         "reference_model": ref_key,
         "n_samples": n_samples,
+        "cluster_info": cluster_info,
         "files_checked": {},
         "all_pre_aligned": True,
     }
@@ -124,9 +152,21 @@ def run_paired_bootstrap(
         point_estimates[k] = compute_metrics(y_true, y_preds[k], y_true_mal, y_preds_mal[k])
 
     # 3. Paired bootstrap resampling (SAME resample indices for all models)
-    logger.info(f"Generating {n_boot} paired bootstrap resamples (seed={seed})...")
     np.random.seed(seed)
-    boot_indices = [np.random.randint(0, n_samples, size=n_samples) for _ in range(n_boot)]
+    if cluster_col is not None and cluster_col in ref_df.columns:
+        logger.info(f"Generating {n_boot} paired cluster-bootstrap resamples by '{cluster_col}' (seed={seed})...")
+        unique_clusters = ref_df[cluster_col].unique()
+        n_clusters = len(unique_clusters)
+        cluster_to_indices = ref_df.groupby(cluster_col).indices
+        boot_indices = []
+        for _ in range(n_boot):
+            sampled_clusters = np.random.choice(unique_clusters, size=n_clusters, replace=True)
+            # All rows of a lesion move together
+            b_idx = np.concatenate([cluster_to_indices[c] for c in sampled_clusters])
+            boot_indices.append(b_idx)
+    else:
+        logger.info(f"Generating {n_boot} paired bootstrap resamples (seed={seed})...")
+        boot_indices = [np.random.randint(0, n_samples, size=n_samples) for _ in range(n_boot)]
 
     boot_model_metrics: Dict[str, Dict[str, List[float]]] = {
         k: {m: [] for m in DEFAULT_METRICS} for k in exp_dirs
@@ -246,8 +286,12 @@ def run_paired_bootstrap(
             "n_boot": n_boot,
             "seed": seed,
             "n_test_samples": n_samples,
+            "cluster_col": cluster_col,
+            "n_unique_clusters": cluster_info["n_unique_clusters"],
+            "has_duplicate_clusters": cluster_info["has_duplicate_clusters"],
             "malignant_classes": MALIGNANT_CLASSES,
             "metrics": DEFAULT_METRICS,
+            "output_suffix": output_suffix,
         },
         "alignment_report": alignment_report,
         "model_point_estimates_and_cis": model_summaries,
@@ -257,14 +301,17 @@ def run_paired_bootstrap(
 
     if output_dir is not None:
         output_dir.mkdir(parents=True, exist_ok=True)
-        json_path = output_dir / "phase2_phase3_paired_bootstrap.json"
+        json_path = output_dir / f"phase2_phase3_paired_bootstrap{output_suffix}.json"
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2)
         logger.info(f"Saved paired bootstrap JSON to {json_path}")
 
-        md_path = output_dir / "phase2_phase3_paired_bootstrap_report.md"
+        md_path = output_dir / f"phase2_phase3_paired_bootstrap_report{output_suffix}.md"
         generate_markdown_report(results, md_path)
         logger.info(f"Saved paired bootstrap Markdown report to {md_path}")
+        if output_suffix:
+            alt_md_path = output_dir / f"phase2_phase3_paired_bootstrap{output_suffix}_report.md"
+            generate_markdown_report(results, alt_md_path)
 
     return results
 
@@ -277,11 +324,18 @@ def generate_markdown_report(results: Dict[str, Any], output_path: Path) -> None
     paired = results["paired_differences_per_seed"]
     pooled = results["pooled_differences"]
 
+    resample_desc = (
+        f"Cluster bootstrap by '{meta['cluster_col']}' ({meta['n_unique_clusters']} unique clusters across {meta['n_test_samples']} test rows)"
+        if meta.get("cluster_col")
+        else "Row-level paired bootstrap (independent test lesions)"
+    )
+
     lines = [
         "# Phase 2 & Phase 3 Paired Bootstrap Statistical Comparison Report",
         "",
         "## Executive Summary",
         f"- **Resamples**: {meta['n_boot']:,} paired bootstrap iterations with identical resample indices across all models.",
+        f"- **Resampling Scheme**: {resample_desc}.",
         f"- **Random Seed**: {meta['seed']} (fixed numpy RNG for exact reproducibility).",
         f"- **Test Lesions Evaluated**: {meta['n_test_samples']} held-out dermoscopic lesions from MILK10k.",
         f"- **Malignant Classes**: {', '.join(meta['malignant_classes'])}.",
@@ -289,10 +343,26 @@ def generate_markdown_report(results: Dict[str, Any], output_path: Path) -> None
         "",
         "## 1. Test Lesion Alignment Verification",
         f"- **Row & Lesion Order Parity**: All six files evaluated had **{'identical row/lesion order and identical true labels' if align['all_pre_aligned'] else 'been aligned by lesion identifier'}**.",
+    ]
+
+    cinfo = align.get("cluster_info", {})
+    if cinfo.get("cluster_col"):
+        lines.append(
+            f"- **Lesion Uniqueness ({cinfo['cluster_col']})**: {cinfo['n_unique_clusters']} unique lesions among {cinfo['n_samples']} rows "
+            f"({cinfo['duplicates_count']} duplicate lesions)."
+        )
+        if not cinfo["has_duplicate_clusters"]:
+            lines.append(
+                "  - *Note*: Every test row represents an independent unique lesion (1.000 rows/lesion). "
+                "Consequently, cluster-level resampling (where all rows of a lesion move together) is mathematically "
+                "identical to row-level resampling under the same seed."
+            )
+
+    lines.extend([
         "",
         "| Model Run | Predictions File | Rows | Identical ISIC Order | Identical Lesion Order | Identical True Label |",
         "|:---|:---|:---:|:---:|:---:|:---:|",
-    ]
+    ])
 
     for k, v in align["files_checked"].items():
         fname = Path(v["path"]).name
@@ -406,6 +476,8 @@ def main() -> None:
     parser.add_argument("--exp3b-seed43-dir", type=str, default="results/exp3b_panderm_logit_adj_seed43")
     parser.add_argument("--n-boot", type=int, default=2000, help="Number of bootstrap resamples (default: 2000)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for bootstrap resampling (default: 42)")
+    parser.add_argument("--cluster-col", type=str, default=None, help="Column to group rows by for cluster bootstrap (e.g. lesion_id)")
+    parser.add_argument("--output-suffix", type=str, default="", help="Suffix to append to output filenames (e.g. _lesion_level)")
     parser.add_argument("--output-dir", type=str, default="results/analysis", help="Output directory (default: results/analysis)")
     args = parser.parse_args()
 
@@ -424,7 +496,9 @@ def main() -> None:
         exp_dirs=exp_dirs,
         n_boot=args.n_boot,
         seed=args.seed,
+        cluster_col=args.cluster_col,
         output_dir=Path(args.output_dir),
+        output_suffix=args.output_suffix,
     )
 
 

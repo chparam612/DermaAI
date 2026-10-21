@@ -29,6 +29,11 @@ ABLATION_COLUMNS = [
 ]
 
 
+def _fmt4(val: Any) -> str:
+    """Format numeric value to exactly 4 decimal places."""
+    return f"{float(val):.4f}"
+
+
 def load_metrics_from_summary(summary_path: Path) -> Optional[Dict[str, Any]]:
     """Load evaluation metrics from summary_metrics.json or metrics.json, resolving nested dirs if needed."""
     resolved_path: Optional[Path] = None
@@ -118,9 +123,9 @@ def build_ablation_table(
                 "exp_id": "Exp-1 (seed 42)",
                 "model": "ResNet-50",
                 "modality": "Dermoscopic",
-                "accuracy": round(acc42, 4),
-                "macro_f1": round(f1_42, 4),
-                "malignant_recall": round(rec42, 4),
+                "accuracy": _fmt4(acc42),
+                "macro_f1": _fmt4(f1_42),
+                "malignant_recall": _fmt4(rec42),
                 "auroc": auroc_str42,
                 "notes": "30-epoch run, seed 42, Kaggle T4 (ImageNet ResNet-50, class-balanced CE, unweighted sampler; differs from Exp-2 in training recipe as well as backbone; not a pure backbone effect)",
             })
@@ -155,9 +160,9 @@ def build_ablation_table(
                 "exp_id": "Exp-1 (seed 43)",
                 "model": "ResNet-50",
                 "modality": "Dermoscopic",
-                "accuracy": round(acc43, 4),
-                "macro_f1": round(f1_43, 4),
-                "malignant_recall": round(rec43, 4),
+                "accuracy": _fmt4(acc43),
+                "macro_f1": _fmt4(f1_43),
+                "malignant_recall": _fmt4(rec43),
                 "auroc": auroc_str43,
                 "notes": notes1_43,
             })
@@ -216,9 +221,9 @@ def build_ablation_table(
             "exp_id": label,
             "model": "PanDerm ViT-Base",
             "modality": "Dermoscopic",
-            "accuracy": round(float(acc), 4),
-            "macro_f1": round(float(f1), 4),
-            "malignant_recall": round(float(mal_rec), 4),
+            "accuracy": _fmt4(acc),
+            "macro_f1": _fmt4(f1),
+            "malignant_recall": _fmt4(mal_rec),
             "auroc": auroc_str,
             "notes": notes,
         })
@@ -243,9 +248,9 @@ def build_ablation_table(
                 "exp_id": "Exp-2 (v2)",
                 "model": "PanDerm ViT-Base",
                 "modality": "Dermoscopic",
-                "accuracy": round(float(acc), 4),
-                "macro_f1": round(float(f1), 4),
-                "malignant_recall": round(float(mal_rec), 4),
+                "accuracy": _fmt4(acc),
+                "macro_f1": _fmt4(f1),
+                "malignant_recall": _fmt4(mal_rec),
                 "auroc": auroc_str,
                 "notes": "v2 corrected (weighted sampler, layer_decay=0.9, val_macro_f1 checkpointing; selection on val only)",
             })
@@ -268,9 +273,9 @@ def build_ablation_table(
                 "exp_id": "Exp-3a",
                 "model": "PanDerm ViT-Base",
                 "modality": "Dermoscopic",
-                "accuracy": round(float(acc), 4),
-                "macro_f1": round(float(f1), 4),
-                "malignant_recall": round(float(mal_rec), 4),
+                "accuracy": _fmt4(acc),
+                "macro_f1": _fmt4(f1),
+                "malignant_recall": _fmt4(mal_rec),
                 "auroc": auroc_str,
                 "notes": f"NULL result (Delta F1 CI includes 0; double-correction supported by mechanism; MEL +1.49% is 1 lesion; tau*={tau_val:.2f})",
             })
@@ -296,9 +301,9 @@ def build_ablation_table(
                 "exp_id": "Exp-2c (seed 42)",
                 "model": "PanDerm ViT-Base",
                 "modality": "Dermoscopic",
-                "accuracy": round(acc42, 4),
-                "macro_f1": round(f1_42, 4),
-                "malignant_recall": round(rec42, 4),
+                "accuracy": _fmt4(acc42),
+                "macro_f1": _fmt4(f1_42),
+                "malignant_recall": _fmt4(rec42),
                 "auroc": auroc_str42,
                 "notes": notes42,
             })
@@ -330,9 +335,9 @@ def build_ablation_table(
                 "exp_id": "Exp-2c (seed 43)",
                 "model": "PanDerm ViT-Base",
                 "modality": "Dermoscopic",
-                "accuracy": round(acc43, 4),
-                "macro_f1": round(f1_43, 4),
-                "malignant_recall": round(rec43, 4),
+                "accuracy": _fmt4(acc43),
+                "macro_f1": _fmt4(f1_43),
+                "malignant_recall": _fmt4(rec43),
                 "auroc": auroc_str43,
                 "notes": notes43,
             })
@@ -364,7 +369,7 @@ def build_ablation_table(
         notes_mean = (
             "mean and sample std over seeds 42 and 43; "
             "seed 42 evaluated via re-run from best checkpoint; "
-            "post-hoc LA, val-selected tau (42: 0.00, 43: 0.10); no meaningful change"
+            "means shown are tau=0; post-hoc LA with val-selected tau (42: 0.00, 43: 0.10) gave no meaningful change"
         )
 
         records.append({
@@ -380,7 +385,7 @@ def build_ablation_table(
 
     # Exp-3b: Train-Time Logit Adjustment (Menon et al., ICLR 2021)
     exp3b_records = []
-    notes3b = "train-time logit adjustment, planned tau=1.0; BCC recall 0.0, accuracy collapse (verify from predictions_test.csv)"
+    notes3b = "train-time logit adjustment, planned tau=1.0; BCC recall 0.0 (391 test lesions), accuracy collapse"
 
     # Exp-3b seed 42
     if exp3b_summary_path and (exp3b_summary_path.is_file() or (exp3b_summary_path.parent / "metrics.json").is_file() or exp3b_summary_path.is_dir()):
@@ -397,9 +402,9 @@ def build_ablation_table(
                 "exp_id": "Exp-3b (seed 42)",
                 "model": "PanDerm ViT-Base",
                 "modality": "Dermoscopic",
-                "accuracy": round(acc42, 4),
-                "macro_f1": round(f1_42, 4),
-                "malignant_recall": round(rec42, 4),
+                "accuracy": _fmt4(acc42),
+                "macro_f1": _fmt4(f1_42),
+                "malignant_recall": _fmt4(rec42),
                 "auroc": auroc_str42,
                 "notes": notes3b,
             })
@@ -428,9 +433,9 @@ def build_ablation_table(
                 "exp_id": "Exp-3b (seed 43)",
                 "model": "PanDerm ViT-Base",
                 "modality": "Dermoscopic",
-                "accuracy": round(acc43, 4),
-                "macro_f1": round(f1_43, 4),
-                "malignant_recall": round(rec43, 4),
+                "accuracy": _fmt4(acc43),
+                "macro_f1": _fmt4(f1_43),
+                "malignant_recall": _fmt4(rec43),
                 "auroc": auroc_str43,
                 "notes": notes3b,
             })
@@ -492,7 +497,7 @@ def build_ablation_table(
             md_content += "| " + " | ".join(str(row[h]) for h in headers) + " |\n"
     md_content += "\n\n*Evaluation performed on MILK10k held-out test split (786 dermoscopic images, zero lesion leakage).*\n"
     md_content += "*Malignant classes evaluated: BCC, MEL, SCCKA, MAL_OTH, AKIEC.*\n"
-    md_content += "*Exp-2c post-hoc sweep: post-hoc LA, val-selected tau (42: 0.00, 43: 0.10); no meaningful change.*\n"
+    md_content += "*Exp-2c post-hoc sweep: means shown are tau=0; post-hoc LA with val-selected tau (42: 0.00, 43: 0.10) gave no meaningful change.*\n"
 
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(md_content)

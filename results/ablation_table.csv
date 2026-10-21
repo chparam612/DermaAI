@@ -1,11 +1,11 @@
 exp_id,model,modality,accuracy,macro_f1,malignant_recall,auroc,notes
 Exp-1 (seed 42),ResNet-50,Dermoscopic,0.7023,0.4158,0.8834,0.8440 (mal: 0.8179),"30-epoch run, seed 42, Kaggle T4 (ImageNet ResNet-50, class-balanced CE, unweighted sampler; differs from Exp-2 in training recipe as well as backbone; not a pure backbone effect)"
-Exp-1 (seed 43),ResNet-50,Dermoscopic,0.673,0.4015,0.8731,0.8249 (mal: 0.8222),"30-epoch run, seed 43, Kaggle T4, best epoch 19"
+Exp-1 (seed 43),ResNet-50,Dermoscopic,0.6730,0.4015,0.8731,0.8249 (mal: 0.8222),"30-epoch run, seed 43, Kaggle T4, best epoch 19"
 Exp-1 mean (n=2),ResNet-50,Dermoscopic,0.6877 ± 0.0207,0.4086 ± 0.0101,0.8782 ± 0.0073,0.8344 ± 0.0135 (mal: 0.8200 ± 0.0030),mean and sample std over seeds 42 and 43
 Exp-2 (v1),PanDerm ViT-Base,Dermoscopic,0.5344,0.1091,0.8165,0.6253 (mal: 0.6699),"v1 recipe (unweighted sampler, majority-class collapse onto BCC/NV)"
 Exp-2 (v2),PanDerm ViT-Base,Dermoscopic,0.6438,0.3925,0.8902,0.7547 (mal: 0.8022),"v2 corrected (weighted sampler, layer_decay=0.9, val_macro_f1 checkpointing; selection on val only)"
 Exp-3a,PanDerm ViT-Base,Dermoscopic,0.6361,0.3883,0.8816,0.7403 (mal: 0.7964),NULL result (Delta F1 CI includes 0; double-correction supported by mechanism; MEL +1.49% is 1 lesion; tau*=0.10)
-Exp-2c (seed 42),PanDerm ViT-Base,Dermoscopic,0.7214,0.469,0.8885,0.8368 (mal: 0.8418),"uniform shuffling, no weighted sampler; evaluation re-run from best_model.pt (epoch 27) after a torch.load error; runtime_info not valid"
+Exp-2c (seed 42),PanDerm ViT-Base,Dermoscopic,0.7214,0.4690,0.8885,0.8368 (mal: 0.8418),"uniform shuffling, no weighted sampler; evaluation re-run from best_model.pt (epoch 27) after a torch.load error; runtime_info not valid"
 Exp-2c (seed 43),PanDerm ViT-Base,Dermoscopic,0.6858,0.3636,0.8799,0.8743 (mal: 0.8677),"uniform shuffling, no weighted sampler; ran end to end with checkpoint fix, best epoch 14"
-Exp-2c mean (n=2),PanDerm ViT-Base,Dermoscopic,0.7036 ± 0.0252,0.4163 ± 0.0746,0.8842 ± 0.0061,0.8555 ± 0.0265 (mal: 0.8547 ± 0.0183),"mean and sample std over seeds 42 and 43; seed 42 evaluated via re-run from best checkpoint; post-hoc LA, val-selected tau (42: 0.00, 43: 0.10); no meaningful change"
-Exp-3b (seed 42),PanDerm ViT-Base,Dermoscopic,0.229,0.3667,0.9417,0.7850 (mal: 0.7596),"train-time logit adjustment, planned tau=1.0; BCC recall 0.0, accuracy collapse (verify from predictions_test.csv)"
+Exp-2c mean (n=2),PanDerm ViT-Base,Dermoscopic,0.7036 ± 0.0252,0.4163 ± 0.0746,0.8842 ± 0.0061,0.8555 ± 0.0265 (mal: 0.8547 ± 0.0183),"mean and sample std over seeds 42 and 43; seed 42 evaluated via re-run from best checkpoint; means shown are tau=0; post-hoc LA with val-selected tau (42: 0.00, 43: 0.10) gave no meaningful change"
+Exp-3b (seed 42),PanDerm ViT-Base,Dermoscopic,0.2290,0.3667,0.9417,0.7850 (mal: 0.7596),"train-time logit adjustment, planned tau=1.0; BCC recall 0.0 (391 test lesions), accuracy collapse"

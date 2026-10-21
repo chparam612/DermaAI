@@ -3,86 +3,97 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch 2.1+](https://img.shields.io/badge/PyTorch-2.1+-ee4c2c.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Weights & Biases](https://img.shields.io/badge/Tracking-W%26B-orange)](https://wandb.ai/)
+[![Tests Passing](https://img.shields.io/badge/tests-77%20passed-brightgreen.svg)](tests/)
 
-A modular, reproducible, research-grade deep learning pipeline for dermatology AI, skin lesion classification, and foundation model fine-tuning with integrated subgroup fairness evaluation.
-
----
-
-## 1. Project Overview
-
-`SkinCancerTracker` provides a standardized framework for training, evaluating, and probing dermatology computer vision models on benchmark datasets (such as ISIC, HAM10000, and PAD-UFES-20). The architecture integrates cutting-edge dermatology foundation models (**PanDerm** and **DermFM-Zero**) alongside traditional baselines, placing rigorous emphasis on:
-- **Reproducibility**: Deterministic seeding, hardware profiling, and experiment manifest capture.
-- **Fairness & Demographic Auditing**: Disaggregated per-skin-tone evaluation (Fitzpatrick phototypes) and sample-level error analysis.
-- **Structured Experiment Tracking**: Multi-dimensional Weights & Biases (W&B) logging including custom per-class and per-subgroup tables.
+A modular, reproducible deep learning pipeline for skin lesion classification and foundation model evaluation on the MILK10k dataset, featuring lesion-level stratified splitting, demographic fairness auditing across Fitzpatrick phototypes, and paired bootstrap statistical testing.
 
 ---
 
-## 2. Repository Structure
+## 1. Project Overview & Verified Benchmark Results
+
+`SkinCancerTracker` benchmarks dermatology computer vision models on **MILK10k** under a patient- and lesion-level stratified partition (SHA-256: `a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36`):
+- **Total Dataset**: 5,240 unique lesions (10,480 images; paired dermoscopic + clinical close-up).
+- **Split Distribution**:
+  - Train: 3,668 lesions (70%)
+  - Validation: 786 lesions (15%)
+  - Test: 786 lesions (15%)
+- **Benchmark Modality**: Dermoscopic images (exactly 786 held-out test lesions evaluated, 1-to-1 bijection, zero leakage).
+
+### Official Benchmark Ablation Table (Held-Out Test Split, $N=786$)
+
+All numbers below are verifiable in [`results/ablation_table.csv`](results/ablation_table.csv), [`results/manifest.json`](results/manifest.json), and [`results/MANIFEST.md`](results/MANIFEST.md):
+
+| Experiment | Model Architecture | Training Strategy | Accuracy | Macro-F1 | Malignant Recall | Malignant AUROC | Macro AUROC | Best Val Epoch |
+|:---|:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Exp-1 (seed 42)** | ResNet-50 | Class-balanced CE, Uniform | 0.7023 | 0.4158 | 0.8834 | 0.8179 | 0.8440 | Epoch 29 |
+| **Exp-1 (seed 43)** | ResNet-50 | Class-balanced CE, Uniform | 0.6730 | 0.4015 | 0.8731 | 0.8222 | 0.8249 | Epoch 19 |
+| **Exp-1 mean ($n=2$)** | ResNet-50 | Class-balanced CE, Uniform | 0.6877 $\pm$ 0.0207 | 0.4086 $\pm$ 0.0101 | 0.8782 $\pm$ 0.0073 | 0.8200 $\pm$ 0.0030 | 0.8344 $\pm$ 0.0135 | — |
+| **Exp-2 (v1)** | PanDerm ViT-Base | Uniform, Standard CE (collapsed) | 0.5344 | 0.1091 | 0.8165 | 0.6699 | 0.6253 | — |
+| **Exp-2 (v2)** | PanDerm ViT-Base | WeightedRandomSampler, LS 0.1 | 0.6438 | 0.3925 | 0.8902 | 0.8022 | 0.7547 | Epoch 26 |
+| **Exp-3a** | PanDerm ViT-Base | Post-hoc LA ($\tau^*=0.10$) on Exp-2 v2 | 0.6361 | 0.3883 | 0.8816 | 0.7964 | 0.7403 | — |
+| **Exp-2c (seed 42)** | PanDerm ViT-Base | Uniform shuffle, LS 0.1 | 0.7214 | 0.4690 | 0.8885 | 0.8418 | 0.8368 | Epoch 27 |
+| **Exp-2c (seed 43)** | PanDerm ViT-Base | Uniform shuffle, LS 0.1 | 0.6858 | 0.3636 | 0.8799 | 0.8677 | 0.8743 | Epoch 14 |
+| **Exp-2c mean ($n=2$)** | PanDerm ViT-Base | Uniform shuffle, LS 0.1 | **0.7036 $\pm$ 0.0252** | **0.4163 $\pm$ 0.0746** | **0.8842 $\pm$ 0.0061** | **0.8547 $\pm$ 0.0183** | **0.8555 $\pm$ 0.0265** | — |
+| **Exp-3b (seed 42)** | PanDerm ViT-Base | Train-Time LA ($\tau=1.0$), LS 0.1 | 0.2290 | 0.3667 | 0.9417 | 0.7596 | 0.7850 | Epoch 25 |
+| **Exp-3b (seed 43)** | PanDerm ViT-Base | Train-Time LA ($\tau=1.0$), LS 0.1 | 0.2379 | 0.3653 | 0.9280 | 0.7753 | 0.8084 | Epoch 25 |
+| **Exp-3b mean ($n=2$)** | PanDerm ViT-Base | Train-Time LA ($\tau=1.0$), LS 0.1 | 0.2335 $\pm$ 0.0063 | 0.3660 $\pm$ 0.0009 | 0.9348 $\pm$ 0.0097 | 0.7675 $\pm$ 0.0111 | 0.7967 $\pm$ 0.0165 | — |
+
+*Malignant classes evaluated: AKIEC, BCC, MAL_OTH, MEL, SCCKA.*  
+*Recipe selection rule*: Phase 4 base recipe selected strictly by validation Macro-F1 (**Exp-2c**, mean val Macro-F1 = `0.5064`).
+
+---
+
+## 2. Key Statistical Findings (Paired Bootstrap, 2,000 Resamples)
+
+Evaluated in [`results/analysis/phase2_phase3_paired_bootstrap.json`](results/analysis/phase2_phase3_paired_bootstrap.json):
+
+1. **PanDerm ViT-Base vs ResNet-50 (Exp-2c minus Exp-1)**:
+   - Pooled Macro-F1 difference: **+0.0077** (95% CI `[-0.0525, 0.0627]`, $P(\Delta > 0) = 0.5925$).
+   - The 95% confidence interval crosses zero, indicating no statistically significant difference in Macro-F1 between the two architectures under uniform sampling on $N=786$.
+2. **Train-Time Logit Adjustment vs Uniform Control (Exp-3b minus Exp-2c)**:
+   - Pooled Macro-F1 difference: **-0.0503** (95% CI `[-0.1118, -0.0061]`, $P(\Delta > 0) = 0.0140$).
+   - Pooled Accuracy difference: **-0.4701** (95% CI `[-0.5064, -0.4338]`, $P(\Delta > 0) = 0.0000$).
+   - Pooled Malignant Recall difference: **+0.0506** (95% CI `[0.0335, 0.0689]`, $P(\Delta > 0) = 1.0000$).
+   - Train-time logit adjustment with fixed $\tau=1.0$ causes Basal Cell Carcinoma recall to drop to **0.0000** (0/391 correctly predicted), collapsing accuracy to ~23%.
+3. **Post-Hoc Logit Adjustment Validation Sweep**:
+   - Sweeping $\tau \in [0.0, 1.5]$ on the validation split yielded optimal $\tau^*=0.00$ (seed 42) and $\tau^*=0.10$ (seed 43), yielding negligible change on the test set (+0.0010 Macro-F1 on seed 43), confirming a null effect.
+
+---
+
+## 3. Repository Structure
 
 ```text
 SkinCancerTracker/
 ├── src/
-│   ├── __init__.py               # Package metadata and version info
-│   ├── data/
-│   │   ├── __init__.py           # Data exports
-│   │   ├── datasets.py           # SkinLesionDataset with subgroup tracking
-│   │   ├── transforms.py         # Training augmentations & eval preprocessing
-│   │   ├── samplers.py           # Class-balanced sampling utilities
-│   │   └── README.md
-│   ├── models/
-│   │   ├── __init__.py           # Backbone model factory stubs
-│   │   └── README.md
-│   ├── losses/
-│   │   ├── __init__.py           # Objective loss functions
-│   │   └── README.md
-│   ├── train/
-│   │   ├── __init__.py           # Training loops & validation logic
-│   │   └── README.md
-│   ├── eval/
-│   │   ├── __init__.py           # Evaluation modules
-│   │   ├── wandb_logger.py       # W&B logger with Table 1, 2, and 3
-│   │   └── README.md
-│   └── utils/
-│       ├── __init__.py           # Utility exports
-│       ├── config.py             # YAML loader, schema validator, CLI parser
-│       ├── reproducibility.py    # Seed setting, Git hash, hardware info
-│       └── README.md
+│   ├── data/                     # Dataset, DataLoaders, transforms, split validation
+│   ├── models/                   # Architecture wrappers (PanDerm ViT, ResNet-50)
+│   ├── losses/                   # Loss functions (CE, Label Smoothing, Logit Adjustment, Hierarchical, TSC)
+│   ├── train/                    # Training loop, validation engine, checkpointing
+│   ├── eval/                     # Metrics calculation, predictions export, W&B logger
+│   └── utils/                    # Reproducibility manifest, seed control, YAML config loader
 ├── configs/
-│   ├── README.md                 # Configuration documentation & §9 notes
-│   └── baseline.yaml             # Baseline experiment configuration
-├── notebooks/
-│   └── README.md                 # Jupyter exploration & EDA directory
-├── scripts/
-│   └── README.md                 # CLI training & evaluation entry points
-├── tests/
-│   ├── __init__.py
-│   ├── test_structure.py         # Directory & import verification
-│   ├── test_config.py            # YAML schema & validation tests
-│   ├── test_wandb_logger.py      # Offline W&B table unit tests
-│   └── test_reproducibility.py   # Seeding and manifest tests
-├── external/
-│   ├── panderm/                  # Git Submodule: PanDerm (Nature Medicine 2025)
-│   ├── dermfm-zero/              # Git Submodule: DermFM-Zero (Feb 2026)
-│   └── README.md                 # External models documentation & licenses
-├── .gitignore                    # Robust exclusion of datasets & checkpoints
-├── .gitmodules                   # Submodule tracking for PanDerm & DermFM-Zero
-├── .env.example                  # Environment variable template for secrets
+│   ├── label_mapping.json        # 11 diagnostic classes and index mapping
+│   └── experiments/              # Experiment configurations for local and Kaggle runs
+├── kaggle/                       # Standalone Kaggle execution scripts (Exp-1, Exp-2c, Exp-3b, Exp-4a)
+├── notebooks/                    # Kaggle execution notebooks and exploratory data analysis
+├── scripts/                      # Utility scripts (ablation table generator, bootstrap analysis, upload packaging)
+├── results/
+│   ├── ablation_table.csv        # Comprehensive benchmark ablation table
+│   ├── ablation_table.md         # Markdown ablation table
+│   ├── MANIFEST.md               # Artifact manifest, file sizes, SHA-256 checksums, and caveats
+│   ├── manifest.json             # Machine-readable artifact manifest
+│   └── analysis/                 # Detailed reports for paired bootstrap, post-hoc sweeps, and final summary
+├── tests/                        # 77 unit tests covering data, models, losses, and Kaggle script AST calls
+├── docs/                         # Phase technical reports and mathematical references
 ├── requirements.txt              # Pinned Python package dependencies
 ├── environment.yml               # Conda environment definition
 ├── pyproject.toml                # Package configuration for editable installation
-├── setup_colab.ipynb             # 10-step executable Google Colab setup
 └── README.md                     # Project documentation
 ```
 
 ---
 
-## 3. Installation Instructions
-
-### Prerequisites
-- Python 3.10 or higher (Python 3.10 recommended for Conda environments).
-- Git with submodule support.
-- NVIDIA GPU with CUDA 11.8+ or 12.1+ recommended for GPU acceleration.
+## 4. Installation & Development
 
 ### Option A: Local Conda Setup (Recommended)
 
@@ -119,127 +130,9 @@ git submodule update --init --recursive
 
 ---
 
-## 4. Local Development Setup
+## 5. Running Tests
 
-1. Copy the environment configuration template:
-   ```bash
-   cp .env.example .env
-   ```
-2. Configure credentials and paths in `.env` (e.g., `WANDB_API_KEY`, `DATASET_ROOT`).
-3. Verify test suite execution:
-   ```bash
-   pytest
-   ```
-
----
-
-## 5. Google Colab Setup
-
-For cloud training on free or premium Google Colab GPUs (T4, A100, V100):
-1. Open `setup_colab.ipynb` in Google Colab.
-2. Execute the notebook sequentially from Cell 1 through Cell 10.
-3. The notebook automates:
-   - Mounting Google Drive (`/content/drive`).
-   - Repository access.
-   - Hardware detection.
-   - Dependency installation via `pip install -r requirements.txt`.
-   - Editable package installation via `pip install -e .`.
-   - Git submodule initialization (`git submodule update --init --recursive`).
-   - Import validation and offline W&B verification.
-
----
-
-## 6. Git Submodule Initialization
-
-The repository tracks **PanDerm** and **DermFM-Zero** via Git submodules under `external/`:
-
-```bash
-git submodule update --init --recursive
-```
-
-Refer to [`external/README.md`](file:///external/README.md) for detailed descriptions of upstream papers, licenses, architectures, and weights download links.
-
----
-
-## 7. Configuration System Usage
-
-Experiments are configured via YAML files in `configs/`.
-
-```python
-from src.utils import load_config
-
-# Load and validate configuration
-config = load_config("configs/baseline.yaml")
-
-print(config.dataset.name)           # Dot-accessible attribute
-print(config["training"]["epochs"])  # Standard dict access
-```
-
-CLI argument parsing and hyperparameter overrides are supported:
-
-```bash
-python -m src.utils.config --config configs/baseline.yaml --epochs 30 --lr 0.0005 --offline
-```
-
----
-
-## 8. Weights & Biases (W&B) Setup
-
-`SkinCancerTracker` includes a dedicated medical logger in `src/eval/wandb_logger.py`.
-
-### Enabling W&B
-1. Login to W&B:
-   ```bash
-   wandb login
-   ```
-2. In `configs/baseline.yaml`, set:
-   ```yaml
-   wandb:
-     enabled: true
-     project: "SkinCancerTracker"
-     mode: "online"
-   ```
-
-### Offline & CI Mode
-When running unit tests or working offline without an account, set:
-```yaml
-wandb:
-  enabled: false
-  mode: "disabled"
-```
-The logger will continue tracking metric history and table structures locally without throwing exceptions or requiring network calls.
-
-### Custom Medical Evaluation Tables
-The pipeline standardly generates three structured tables:
-1. **Table 1: Per-Class Metrics** (`eval/per_class_metrics`):
-   - Columns: `class_name`, `support`, `precision`, `recall`, `f1_score`, `specificity`, `balanced_accuracy`.
-2. **Table 2: Per-Skin-Tone Metrics** (`eval/per_skin_tone_metrics`):
-   - Columns: `skin_tone_group`, `support`, `accuracy`, `balanced_accuracy`, `precision`, `recall`, `f1_score`, `auc`.
-   - Gracefully handles missing subgroup annotations by labelling them `Unannotated / Unknown` without fabricating labels or skewing denominators.
-3. **Table 3: Subgroup Error Analysis** (`eval/subgroup_error_analysis`):
-   - Columns: `sample_id`, `true_label`, `predicted_label`, `confidence`, `skin_tone_group`, `error_type`.
-
----
-
-## 9. Reproducibility
-
-To enforce determinism across PyTorch, NumPy, and Python:
-
-```python
-from src.utils import set_seed, capture_reproducibility_manifest
-
-# Set deterministic seed
-set_seed(42)
-
-# Save snapshot of hardware, software dependencies, and Git state
-manifest = capture_reproducibility_manifest(seed=42, output_path="outputs/manifest.json")
-```
-
----
-
-## 10. Running Tests
-
-Run the complete test suite with `pytest`:
+Run the complete 77-test suite with `pytest`:
 
 ```bash
 pytest
@@ -253,12 +146,12 @@ pytest -v
 
 ---
 
-## 12. Phase 2 — Baseline Experiments (Exp-1 & Exp-2)
+## 6. Primary Reports and Documentation
 
-Phase 2 establishes baseline single-modality dermoscopic classification benchmarks on MILK10k for downstream multimodal comparison:
-
-- **Exp-1 (`scripts/train_exp1_baseline.py`)**: ResNet-50 ImageNet-pretrained baseline trained with class-balanced Cross-Entropy ($w_c = \frac{N}{C \cdot N_c}$).
-- **Exp-2 (`scripts/train_exp2_panderm.py`)**: PanDerm ViT-Base fine-tuned using the official recipe from `external/panderm/classification/run_class_finetuning.py`.
-- **Ablation Generation (`scripts/generate_ablation_table.py`)**: Compiles test metrics into `results/ablation_table.csv` and `results/ablation_table.md`.
-
-For detailed documentation, hyperparameter tables, W&B run IDs, and PanDerm methodology notes, refer to [`docs/phase2_baseline_experiments.md`](docs/phase2_baseline_experiments.md).
+- **Final Summary Report**: [`results/analysis/FINAL_SUMMARY.md`](results/analysis/FINAL_SUMMARY.md)
+- **Artifact Manifest & Caveats**: [`results/MANIFEST.md`](results/MANIFEST.md)
+- **Paired Bootstrap Analysis**: [`results/analysis/phase2_phase3_paired_bootstrap_report.md`](results/analysis/phase2_phase3_paired_bootstrap_report.md)
+- **Post-Hoc Logit Adjustment**: [`results/analysis/exp2c_posthoc_la_report.md`](results/analysis/exp2c_posthoc_la_report.md)
+- **Phase 2 Baseline Experiments**: [`docs/phase2_baseline_experiments.md`](docs/phase2_baseline_experiments.md)
+- **Phase 3 Logit Adjustment**: [`docs/phase3_logit_adjustment.md`](docs/phase3_logit_adjustment.md)
+- **Mathematical Formulations Reference**: [`docs/technical_reference/ALL_FORMULAS_AND_MATHEMATICS.md`](docs/technical_reference/ALL_FORMULAS_AND_MATHEMATICS.md)

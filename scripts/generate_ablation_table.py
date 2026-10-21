@@ -419,6 +419,7 @@ def build_ablation_table(
             raise FileNotFoundError(f"Could not find Exp-3b (seed 42) metrics at {exp3b_summary_path}")
 
     # Exp-3b seed 43
+    notes3b_43 = "train-time logit adjustment, planned tau=1.0; BCC recall 0.0 (391 test lesions), accuracy collapse; best epoch 25 (verify from training_curves.json)"
     if exp3b_seed43_summary_path and exp3b_seed43_summary_path.exists():
         d3b_43 = load_metrics_from_summary(exp3b_seed43_summary_path)
         if d3b_43:
@@ -437,7 +438,7 @@ def build_ablation_table(
                 "macro_f1": _fmt4(f1_43),
                 "malignant_recall": _fmt4(rec43),
                 "auroc": auroc_str43,
-                "notes": notes3b,
+                "notes": notes3b_43,
             })
             exp3b_records.append({
                 "acc": acc43,

@@ -1,0 +1,301 @@
+{
+  "Exp-1 (seed 42)": {
+    "directory": "results/exp1_resnet50_seed42",
+    "seed": 42,
+    "best_epoch": 29,
+    "best_val_macro_f1": 0.4679918823484684,
+    "test_metrics": {
+      "accuracy": 0.7022900763358778,
+      "macro_f1": 0.4157967429903646,
+      "malignant_recall": 0.8833619210977701,
+      "malignant_fnr_derived": 0.11663807890222988,
+      "malignant_auroc": 0.8178945322731921,
+      "macro_auroc": 0.843980606705395,
+      "balanced_accuracy": 0.40581348884407525
+    },
+    "split_hash_verified": "a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36",
+    "test_lesion_count": 786,
+    "files": [
+      {
+        "relpath": "exp1_resnet50_artifacts/summary_metrics.json",
+        "size_bytes": 8963,
+        "sha256": "7ea0d375f8df4b2cdb248ca87e9a0040c8c17115b52dff68343a26abf39a89e4"
+      },
+      {
+        "relpath": "metrics.json",
+        "size_bytes": 8727,
+        "sha256": "21370aa2f5a6fc32ee0b751583ff74b957ef9eeab92b6ade853229d0f7d4389d"
+      },
+      {
+        "relpath": "predictions_test.csv",
+        "size_bytes": 168550,
+        "sha256": "8f01eb91d234bf9ee34926eaf317b9f4c2feae62aba1e4ee36b8a22599ed35bb"
+      },
+      {
+        "relpath": "predictions_val.csv",
+        "size_bytes": 172917,
+        "sha256": "a5fdb80ae746522c4348bef761bc9185b71dde0f31d0aac62c9874db5bcc5237"
+      },
+      {
+        "relpath": "summary_metrics.json",
+        "size_bytes": 8953,
+        "sha256": "014a22c3f272a77d7e4163fcea73c866f25f63aa2f8644ae2d6a2201e0f12dec"
+      },
+      {
+        "relpath": "training_curves.json",
+        "size_bytes": 6290,
+        "sha256": "6fb104569803ef17caa6f7e2e1ee9e6cbc247b34f7e42fe3077f9b579ed4973c"
+      }
+    ]
+  },
+  "Exp-1 (seed 43)": {
+    "directory": "results/exp1_resnet50_seed43",
+    "seed": 43,
+    "best_epoch": 19,
+    "best_val_macro_f1": 0.48997512028851453,
+    "test_metrics": {
+      "accuracy": 0.6730279898218829,
+      "macro_f1": 0.40145402763020466,
+      "malignant_recall": 0.8730703259005146,
+      "malignant_fnr_derived": 0.1269296740994854,
+      "malignant_auroc": 0.8221784721459413,
+      "macro_auroc": 0.8248975682167842,
+      "balanced_accuracy": 0.39117122832195167
+    },
+    "split_hash_verified": "a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36",
+    "test_lesion_count": 786,
+    "files": [
+      {
+        "relpath": "exp1_resnet50_seed43_artifacts/metrics.json",
+        "size_bytes": 8677,
+        "sha256": "211e54c9f28b5c59422bbdaf9d026a40fe87aaaba96a9306fa8212802d27b80c"
+      },
+      {
+        "relpath": "exp1_resnet50_seed43_artifacts/predictions_test.csv",
+        "size_bytes": 167804,
+        "sha256": "3eb5405039d8a41322e5b365aa4098654e2d688231875848a6195b67350d60e6"
+      },
+      {
+        "relpath": "exp1_resnet50_seed43_artifacts/predictions_val.csv",
+        "size_bytes": 172408,
+        "sha256": "3ef3a3c644bd58f02e04a5466bb3289d4541fa9b9f32c7825b3e86ec4fe268f0"
+      },
+      {
+        "relpath": "exp1_resnet50_seed43_artifacts/summary_metrics.json",
+        "size_bytes": 8903,
+        "sha256": "def731014c6442c64c22be0c266474135dbc840d4aa0184028b7ecb536b7b818"
+      },
+      {
+        "relpath": "exp1_resnet50_seed43_artifacts/training_curves.json",
+        "size_bytes": 6271,
+        "sha256": "ac9d42e3c8e723cb2a6f040d8acf4410bc1ecc1e5e42497b9d96a84cb161316b"
+      }
+    ]
+  },
+  "Exp-2c (seed 42)": {
+    "directory": "results/exp2c_panderm_uniform_seed42",
+    "seed": 42,
+    "best_epoch": 27,
+    "best_val_macro_f1": 0.5166662022002645,
+    "test_metrics": {
+      "accuracy": 0.7213740458015268,
+      "macro_f1": 0.46903667604274074,
+      "malignant_recall": 0.888507718696398,
+      "malignant_fnr_derived": 0.111492281303602,
+      "malignant_auroc": 0.841840657715739,
+      "macro_auroc": 0.8367971471040435,
+      "balanced_accuracy": 0.4723638828829135
+    },
+    "split_hash_verified": "a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36",
+    "test_lesion_count": 786,
+    "files": [
+      {
+        "relpath": "best_model (1).pt",
+        "size_bytes": 1028819326,
+        "sha256": "8a6026bd2cf7daff473b7bd4d3e06a0d2a3868034f45945e02bc57c6576d40e1"
+      },
+      {
+        "relpath": "exp2c_panderm_uniform_artifacts/metrics.json",
+        "size_bytes": 8844,
+        "sha256": "f8082669f94b306feb4f4791ae8286432f422c6d95b1523c8eb811a9b3966ab1"
+      },
+      {
+        "relpath": "exp2c_panderm_uniform_artifacts/predictions_test.csv",
+        "size_bytes": 164543,
+        "sha256": "2899edd13e4c3404ceb413bb395a4f913afbda9a0dd8d208cb53a08bd55f6bf2"
+      },
+      {
+        "relpath": "exp2c_panderm_uniform_artifacts/predictions_val.csv",
+        "size_bytes": 169658,
+        "sha256": "957c27b8f801d5097ab270b7e79f39f1f204c7eb83ab60cece15540eb3873866"
+      },
+      {
+        "relpath": "exp2c_panderm_uniform_artifacts/summary_metrics.json",
+        "size_bytes": 9123,
+        "sha256": "5516b70560e529348e83a08a127f58df636f764393df7e83b949c2194a876dbf"
+      },
+      {
+        "relpath": "exp2c_panderm_uniform_artifacts/training_curves.json",
+        "size_bytes": 6295,
+        "sha256": "31bb8c4c2757a5dcf58056ef89db244577d236e44076125fa350d6be5f6ab346"
+      }
+    ]
+  },
+  "Exp-2c (seed 43)": {
+    "directory": "results/exp2c_panderm_uniform_seed43",
+    "seed": 43,
+    "best_epoch": 14,
+    "best_val_macro_f1": 0.495962518663311,
+    "test_metrics": {
+      "accuracy": 0.6857506361323156,
+      "macro_f1": 0.3635758624391242,
+      "malignant_recall": 0.8799313893653516,
+      "malignant_fnr_derived": 0.12006861063464835,
+      "malignant_auroc": 0.8676541415643563,
+      "macro_auroc": 0.8742915378633204,
+      "balanced_accuracy": 0.38092140361137156
+    },
+    "split_hash_verified": "a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36",
+    "test_lesion_count": 786,
+    "files": [
+      {
+        "relpath": "exp2c_panderm_uniform_seed43_artifacts/metrics.json",
+        "size_bytes": 8660,
+        "sha256": "72494067346c98bf17a91db9de46dd9e45cced505b000d5451e4e5ea27010dad"
+      },
+      {
+        "relpath": "exp2c_panderm_uniform_seed43_artifacts/predictions_test.csv",
+        "size_bytes": 163079,
+        "sha256": "d2584fbfba3096e41666f874914e2c3c48cdd5509bce73968fed6c163abfe726"
+      },
+      {
+        "relpath": "exp2c_panderm_uniform_seed43_artifacts/predictions_val.csv",
+        "size_bytes": 168039,
+        "sha256": "66655dd68e7a20713fbc40a904b72e8e2fba46e51a9aa78197f1cd7766c33860"
+      },
+      {
+        "relpath": "exp2c_panderm_uniform_seed43_artifacts/summary_metrics.json",
+        "size_bytes": 8943,
+        "sha256": "4f2c66ff7b1499c21d658220c11d8567eba26b078d3bbad4242ff2aaead0f043"
+      },
+      {
+        "relpath": "exp2c_panderm_uniform_seed43_artifacts/training_curves.json",
+        "size_bytes": 6292,
+        "sha256": "d142c7833f51290c4cbdf9269bdc252e02b34200333582342dcc809d940df008"
+      }
+    ]
+  },
+  "Exp-3b (seed 42)": {
+    "directory": "results/exp3b_panderm_logit_adj_seed42",
+    "seed": 42,
+    "best_epoch": 25,
+    "best_val_macro_f1": 0.41253176199089925,
+    "test_metrics": {
+      "accuracy": 0.22900763358778625,
+      "macro_f1": 0.3666519195732923,
+      "malignant_recall": 0.9416809605488851,
+      "malignant_fnr_derived": 0.05831903945111494,
+      "malignant_auroc": 0.7595839424076248,
+      "macro_auroc": 0.7850318808135675,
+      "balanced_accuracy": 0.38624935866839
+    },
+    "split_hash_verified": "a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36",
+    "test_lesion_count": 786,
+    "files": [
+      {
+        "relpath": "metrics.json",
+        "size_bytes": 8676,
+        "sha256": "7fcf738046bb29ed78a944506a67d984bd2589288ee36fc4e681705911a7e977"
+      },
+      {
+        "relpath": "predictions_test.csv",
+        "size_bytes": 160093,
+        "sha256": "69add94c66e95a52f6a1aef635ea01cf732b6b7e0ff29dac51a1606aba8467d2"
+      },
+      {
+        "relpath": "predictions_val.csv",
+        "size_bytes": 164368,
+        "sha256": "d00f6d9074425b7a4c9b7b506bb3279645e8fca4180a9ef4d5c6f164b2f2850c"
+      },
+      {
+        "relpath": "summary_metrics.json",
+        "size_bytes": 8966,
+        "sha256": "bfd3ebbb93e031819781db2967ba5a283984006156bc5bb4d0516984e80f75ec"
+      },
+      {
+        "relpath": "training_curves.json",
+        "size_bytes": 6350,
+        "sha256": "c265a94c949f1fa905db58730d398d34e67e5fe3c812bc301986157317c9a562"
+      }
+    ]
+  },
+  "Exp-3b (seed 43)": {
+    "directory": "results/exp3b_panderm_logit_adj_seed43",
+    "seed": 43,
+    "best_epoch": 25,
+    "best_val_macro_f1": 0.39476888760870454,
+    "test_metrics": {
+      "accuracy": 0.23791348600508905,
+      "macro_f1": 0.3653362704234416,
+      "malignant_recall": 0.9279588336192109,
+      "malignant_fnr_derived": 0.07204116638078906,
+      "malignant_auroc": 0.7753170706976822,
+      "macro_auroc": 0.8083712392410546,
+      "balanced_accuracy": 0.43659889556886794
+    },
+    "split_hash_verified": "a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36",
+    "test_lesion_count": 786,
+    "files": [
+      {
+        "relpath": "exp3b_panderm_logit_adj_seed43_artifacts/metrics.json",
+        "size_bytes": 8717,
+        "sha256": "197d99a16b1316b49739fd82a36f93a9e8a248be7baab0894381ee4ae0486b06"
+      },
+      {
+        "relpath": "exp3b_panderm_logit_adj_seed43_artifacts/predictions_test.csv",
+        "size_bytes": 159975,
+        "sha256": "629d3a70112d7581a6c5efc2b7e6e2cdd1490b571d5b2664f64c133807cc8db1"
+      },
+      {
+        "relpath": "exp3b_panderm_logit_adj_seed43_artifacts/predictions_val.csv",
+        "size_bytes": 164591,
+        "sha256": "34962b6a89fb8a8bb56b0c1d1aa5c9bceb09ba9f6070884afdbe742561f65b98"
+      },
+      {
+        "relpath": "exp3b_panderm_logit_adj_seed43_artifacts/summary_metrics.json",
+        "size_bytes": 9007,
+        "sha256": "bff5153a3aa3716a9c0895388e1ac2ed8910b5a23d7298a6a0e8415b6d869a45"
+      },
+      {
+        "relpath": "exp3b_panderm_logit_adj_seed43_artifacts/training_curves.json",
+        "size_bytes": 6336,
+        "sha256": "a03732c073e69f3fc71b89276b4c5b563c7fa774c213a4767b37f1e48be4668f"
+      },
+      {
+        "relpath": "metrics.json",
+        "size_bytes": 8717,
+        "sha256": "197d99a16b1316b49739fd82a36f93a9e8a248be7baab0894381ee4ae0486b06"
+      },
+      {
+        "relpath": "predictions_test.csv",
+        "size_bytes": 159975,
+        "sha256": "629d3a70112d7581a6c5efc2b7e6e2cdd1490b571d5b2664f64c133807cc8db1"
+      },
+      {
+        "relpath": "predictions_val.csv",
+        "size_bytes": 164591,
+        "sha256": "34962b6a89fb8a8bb56b0c1d1aa5c9bceb09ba9f6070884afdbe742561f65b98"
+      },
+      {
+        "relpath": "summary_metrics.json",
+        "size_bytes": 9007,
+        "sha256": "bff5153a3aa3716a9c0895388e1ac2ed8910b5a23d7298a6a0e8415b6d869a45"
+      },
+      {
+        "relpath": "training_curves.json",
+        "size_bytes": 6336,
+        "sha256": "a03732c073e69f3fc71b89276b4c5b563c7fa774c213a4767b37f1e48be4668f"
+      }
+    ]
+  }
+}

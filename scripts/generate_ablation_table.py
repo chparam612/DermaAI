@@ -94,6 +94,7 @@ def build_ablation_table(
     exp2c_seed42_summary_path: Optional[Path] = None,
     exp2c_seed43_summary_path: Optional[Path] = None,
     exp1_seed43_summary_path: Optional[Path] = None,
+    exp3b_seed43_summary_path: Optional[Path] = None,
     strict: bool = False,
 ) -> pd.DataFrame:
     """Compile ablation table from Exp-1, Exp-2, Exp-3a, Exp-2c, and Exp-3b metrics."""
@@ -360,7 +361,11 @@ def build_ablation_table(
         m_mal_auroc, s_mal_auroc = np.mean(mal_auroc_vals), np.std(mal_auroc_vals, ddof=1)
 
         mean_auroc_str = f"{m_auroc:.4f} \u00b1 {s_auroc:.4f} (mal: {m_mal_auroc:.4f} \u00b1 {s_mal_auroc:.4f})"
-        notes_mean = "mean and sample std over seeds 42 and 43; seed 42 evaluated via re-run from best checkpoint"
+        notes_mean = (
+            "mean and sample std over seeds 42 and 43; "
+            "seed 42 evaluated via re-run from best checkpoint; "
+            "post-hoc LA, val-selected tau (42: 0.00, 43: 0.10); no meaningful change"
+        )
 
         records.append({
             "exp_id": "Exp-2c mean (n=2)",
@@ -374,26 +379,96 @@ def build_ablation_table(
         })
 
     # Exp-3b: Train-Time Logit Adjustment (Menon et al., ICLR 2021)
-    if exp3b_summary_path and (exp3b_summary_path.is_file() or (exp3b_summary_path.parent / "metrics.json").is_file()):
-        d3b = load_metrics_from_summary(exp3b_summary_path)
-        if d3b:
-            m3b = d3b.get("test_overall", {})
-            acc = m3b.get("accuracy", 0.0)
-            f1 = m3b.get("macro_f1", 0.0)
-            mal_rec = m3b.get("malignant_recall", 0.0)
-            auroc = m3b.get("macro_auroc", 0.0)
-            mal_auroc = m3b.get("malignant_auroc", 0.0)
-            auroc_str = f"{auroc:.4f} (mal: {mal_auroc:.4f})" if mal_auroc > 0 else f"{auroc:.4f}"
+    exp3b_records = []
+    notes3b = "train-time logit adjustment, planned tau=1.0; BCC recall 0.0, accuracy collapse (verify from predictions_test.csv)"
+
+    # Exp-3b seed 42
+    if exp3b_summary_path and (exp3b_summary_path.is_file() or (exp3b_summary_path.parent / "metrics.json").is_file() or exp3b_summary_path.is_dir()):
+        d3b_42 = load_metrics_from_summary(exp3b_summary_path)
+        if d3b_42:
+            m3b_42 = d3b_42.get("test_overall", {})
+            acc42 = float(m3b_42.get("accuracy", 0.0))
+            f1_42 = float(m3b_42.get("macro_f1", 0.0))
+            rec42 = float(m3b_42.get("malignant_recall", 0.0))
+            auroc42 = float(m3b_42.get("macro_auroc", 0.0))
+            mal_auroc42 = float(m3b_42.get("malignant_auroc", 0.0))
+            auroc_str42 = f"{auroc42:.4f} (mal: {mal_auroc42:.4f})" if mal_auroc42 > 0 else f"{auroc42:.4f}"
             records.append({
-                "exp_id": "Exp-3b",
+                "exp_id": "Exp-3b (seed 42)",
                 "model": "PanDerm ViT-Base",
                 "modality": "Dermoscopic",
-                "accuracy": round(float(acc), 4),
-                "macro_f1": round(float(f1), 4),
-                "malignant_recall": round(float(mal_rec), 4),
-                "auroc": auroc_str,
-                "notes": "Train-time logit adjustment loss (tau=1.0, uniform shuffle, LS=0.1; full 30-epoch Kaggle run)",
+                "accuracy": round(acc42, 4),
+                "macro_f1": round(f1_42, 4),
+                "malignant_recall": round(rec42, 4),
+                "auroc": auroc_str42,
+                "notes": notes3b,
             })
+            exp3b_records.append({
+                "acc": acc42,
+                "f1": f1_42,
+                "rec": rec42,
+                "auroc": auroc42,
+                "mal_auroc": mal_auroc42,
+            })
+        elif strict:
+            raise FileNotFoundError(f"Could not find Exp-3b (seed 42) metrics at {exp3b_summary_path}")
+
+    # Exp-3b seed 43
+    if exp3b_seed43_summary_path and exp3b_seed43_summary_path.exists():
+        d3b_43 = load_metrics_from_summary(exp3b_seed43_summary_path)
+        if d3b_43:
+            m3b_43 = d3b_43.get("test_overall", {})
+            acc43 = float(m3b_43.get("accuracy", 0.0))
+            f1_43 = float(m3b_43.get("macro_f1", 0.0))
+            rec43 = float(m3b_43.get("malignant_recall", 0.0))
+            auroc43 = float(m3b_43.get("macro_auroc", 0.0))
+            mal_auroc43 = float(m3b_43.get("malignant_auroc", 0.0))
+            auroc_str43 = f"{auroc43:.4f} (mal: {mal_auroc43:.4f})" if mal_auroc43 > 0 else f"{auroc43:.4f}"
+            records.append({
+                "exp_id": "Exp-3b (seed 43)",
+                "model": "PanDerm ViT-Base",
+                "modality": "Dermoscopic",
+                "accuracy": round(acc43, 4),
+                "macro_f1": round(f1_43, 4),
+                "malignant_recall": round(rec43, 4),
+                "auroc": auroc_str43,
+                "notes": notes3b,
+            })
+            exp3b_records.append({
+                "acc": acc43,
+                "f1": f1_43,
+                "rec": rec43,
+                "auroc": auroc43,
+                "mal_auroc": mal_auroc43,
+            })
+        elif strict:
+            raise FileNotFoundError(f"Could not find Exp-3b (seed 43) metrics at {exp3b_seed43_summary_path}")
+
+    # Exp-3b mean (n=2)
+    if len(exp3b_records) >= 2:
+        acc_vals = [r["acc"] for r in exp3b_records]
+        f1_vals = [r["f1"] for r in exp3b_records]
+        rec_vals = [r["rec"] for r in exp3b_records]
+        auroc_vals = [r["auroc"] for r in exp3b_records]
+        mal_auroc_vals = [r["mal_auroc"] for r in exp3b_records]
+
+        m_acc, s_acc = np.mean(acc_vals), np.std(acc_vals, ddof=1)
+        m_f1, s_f1 = np.mean(f1_vals), np.std(f1_vals, ddof=1)
+        m_rec, s_rec = np.mean(rec_vals), np.std(rec_vals, ddof=1)
+        m_auroc, s_auroc = np.mean(auroc_vals), np.std(auroc_vals, ddof=1)
+        m_mal_auroc, s_mal_auroc = np.mean(mal_auroc_vals), np.std(mal_auroc_vals, ddof=1)
+
+        mean_auroc_str = f"{m_auroc:.4f} \u00b1 {s_auroc:.4f} (mal: {m_mal_auroc:.4f} \u00b1 {s_mal_auroc:.4f})"
+        records.append({
+            "exp_id": "Exp-3b mean (n=2)",
+            "model": "PanDerm ViT-Base",
+            "modality": "Dermoscopic",
+            "accuracy": f"{m_acc:.4f} \u00b1 {s_acc:.4f}",
+            "macro_f1": f"{m_f1:.4f} \u00b1 {s_f1:.4f}",
+            "malignant_recall": f"{m_rec:.4f} \u00b1 {s_rec:.4f}",
+            "auroc": mean_auroc_str,
+            "notes": "mean and sample std over seeds 42 and 43",
+        })
 
     df = pd.DataFrame(records, columns=ABLATION_COLUMNS)
 
@@ -417,6 +492,7 @@ def build_ablation_table(
             md_content += "| " + " | ".join(str(row[h]) for h in headers) + " |\n"
     md_content += "\n\n*Evaluation performed on MILK10k held-out test split (786 dermoscopic images, zero lesion leakage).*\n"
     md_content += "*Malignant classes evaluated: BCC, MEL, SCCKA, MAL_OTH, AKIEC.*\n"
+    md_content += "*Exp-2c post-hoc sweep: post-hoc LA, val-selected tau (42: 0.00, 43: 0.10); no meaningful change.*\n"
 
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(md_content)
@@ -461,9 +537,17 @@ def main():
     )
     parser.add_argument(
         "--exp3b-dir",
+        "--exp3b-seed42-dir",
+        dest="exp3b_dir",
         type=str,
-        default=None,
-        help="Directory containing Exp-3b results (e.g. results/exp3b_panderm_logit_adj)",
+        default="results/exp3b_panderm_logit_adj_seed42",
+        help="Directory containing Exp-3b seed 42 results (default: results/exp3b_panderm_logit_adj_seed42)",
+    )
+    parser.add_argument(
+        "--exp3b-seed43-dir",
+        type=str,
+        default="results/exp3b_panderm_logit_adj_seed43",
+        help="Directory containing Exp-3b seed 43 results (default: results/exp3b_panderm_logit_adj_seed43)",
     )
     parser.add_argument(
         "--exp2c-seed42-dir",
@@ -496,7 +580,8 @@ def main():
     exp2_summary = Path(args.exp2_dir) / "summary_metrics.json"
     exp2_v2_summary = (Path(args.exp2_v2_dir) / "summary_metrics.json") if args.exp2_v2_dir else None
     exp3a_summary = (Path(args.exp3a_dir) / "summary_metrics.json") if args.exp3a_dir else None
-    exp3b_summary = (Path(args.exp3b_dir) / "summary_metrics.json") if args.exp3b_dir else None
+    exp3b_s42_summary = (Path(args.exp3b_dir)) if args.exp3b_dir else None
+    exp3b_s43_summary = (Path(args.exp3b_seed43_dir)) if args.exp3b_seed43_dir else None
     exp2c_s42_summary = (Path(args.exp2c_seed42_dir)) if args.exp2c_seed42_dir else None
     exp2c_s43_summary = (Path(args.exp2c_seed43_dir)) if args.exp2c_seed43_dir else None
     output_dir = Path(args.output_dir)
@@ -507,10 +592,11 @@ def main():
         output_dir,
         exp2_v2_summary_path=exp2_v2_summary,
         exp3a_summary_path=exp3a_summary,
-        exp3b_summary_path=exp3b_summary,
+        exp3b_summary_path=exp3b_s42_summary,
         exp2c_seed42_summary_path=exp2c_s42_summary,
         exp2c_seed43_summary_path=exp2c_s43_summary,
         exp1_seed43_summary_path=exp1_s43_summary,
+        exp3b_seed43_summary_path=exp3b_s43_summary,
         strict=args.strict,
     )
     print("\n" + "=" * 70)

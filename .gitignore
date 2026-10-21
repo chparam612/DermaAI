@@ -104,3 +104,12 @@ htmlcov/
 *.tmp
 *.temp
 scratch/
+
+# Weights, Artifacts, and Run Caches
+wandb/
+**/wandb/
+*.pt
+**/*.pt
+__pycache__/
+**/__pycache__/
+

@@ -166,3 +166,11 @@
     - Test Suite: 9 tests passing in tests/test_api.py (all error cases, probability sum = 1, in-memory purity).
     - Smoke Test Script: scripts/demo_api_smoke.py verified on 3 test lesions (BCC, MEL, NV).
     - Contract Diff: Documented in results/audit/api_contract_diff.md vs frontend types.ts.
+  - **Gate 4 Deliverables (Frontend F4 Panel Metrics Summary)**:
+    - Generated: results/frontend_report_summary.json (source-traceable to results/exp2c_panderm_uniform_seed42/exp2c_panderm_uniform_artifacts/summary_metrics.json and predictions_test.csv).
+    - Overall Test Metrics: Macro-F1: 0.4690, Top-1 Acc: 0.7214, Balanced Acc: 0.4724, Weighted F1: 0.7131, Macro AUROC: 0.8368.
+    - Malignant vs Benign: Sensitivity: 0.8885, Specificity: 0.6552, FN: 65, FP: 70, TP: 518, TN: 133.
+    - Per-class test recall/F1 across all 11 classes with support.
+    - Skin-tone subgroups: Tone 1 (n=12, low_confidence=true), Tone 2 (n=72), Tone 3 (n=486), Tone 4 (n=153), Tone 5 (n=63).
+    - Honest Caveats Embedded: Single-run provenance, seed 43 variance (|Delta F1| = 0.1054), internal split limitations, tail class supports ({'BEN_OTH': 8, 'DF': 5, 'INF': 5, 'MAL_OTH': 2, 'VASC': 6}), and benchmark incomparability with published 53.6%.
+    - Test Suite: tests/test_frontend_report.py passing.

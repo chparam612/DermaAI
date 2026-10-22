@@ -1,0 +1,179 @@
+{
+  "status": "audited_and_verified",
+  "provenance": {
+    "source": "results/exp2c_panderm_uniform_seed42/exp2c_panderm_uniform_artifacts/summary_metrics.json",
+    "model_architecture": "PanDerm VisionTransformer (panderm_base)",
+    "experiment_name": "exp2c-panderm-uniform",
+    "seed": 42,
+    "split_file": "data/splits/lesion_level_splits.csv",
+    "split_sha256": "a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36",
+    "modality_evaluated": "dermoscopic (single image per lesion)",
+    "total_test_samples": 786
+  },
+  "overall_test_metrics": {
+    "source": "results/exp2c_panderm_uniform_seed42/exp2c_panderm_uniform_artifacts/summary_metrics.json:test_overall",
+    "macro_f1": 0.469,
+    "accuracy": 0.7214,
+    "balanced_accuracy": 0.4724,
+    "weighted_f1": 0.7131,
+    "macro_auroc": 0.8368
+  },
+  "malignant_vs_benign_metrics": {
+    "source": "results/exp2c_panderm_uniform_seed42/exp2c_panderm_uniform_artifacts/predictions_test.csv",
+    "malignant_classes": [
+      "BCC",
+      "MEL",
+      "SCCKA",
+      "MAL_OTH",
+      "AKIEC"
+    ],
+    "sensitivity": 0.8885,
+    "specificity": 0.6552,
+    "false_negative_count": 65,
+    "false_positive_count": 70,
+    "true_positive_count": 518,
+    "true_negative_count": 133,
+    "total_malignant": 583,
+    "total_benign": 203
+  },
+  "per_class_metrics": {
+    "source": "results/exp2c_panderm_uniform_seed42/exp2c_panderm_uniform_artifacts/summary_metrics.json:test_overall.per_class",
+    "classes": {
+      "AKIEC": {
+        "recall": 0.463,
+        "f1_score": 0.4902,
+        "precision": 0.5208,
+        "support": 54,
+        "is_tail_class": false
+      },
+      "BCC": {
+        "recall": 0.9105,
+        "f1_score": 0.8779,
+        "precision": 0.8476,
+        "support": 391,
+        "is_tail_class": false
+      },
+      "BEN_OTH": {
+        "recall": 0.125,
+        "f1_score": 0.1818,
+        "precision": 0.3333,
+        "support": 8,
+        "is_tail_class": true
+      },
+      "BKL": {
+        "recall": 0.3875,
+        "f1_score": 0.4161,
+        "precision": 0.4493,
+        "support": 80,
+        "is_tail_class": false
+      },
+      "DF": {
+        "recall": 0.6,
+        "f1_score": 0.4,
+        "precision": 0.3,
+        "support": 5,
+        "is_tail_class": true
+      },
+      "INF": {
+        "recall": 0.4,
+        "f1_score": 0.3333,
+        "precision": 0.2857,
+        "support": 5,
+        "is_tail_class": true
+      },
+      "MAL_OTH": {
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "precision": 0.0,
+        "support": 2,
+        "is_tail_class": true
+      },
+      "MEL": {
+        "recall": 0.5075,
+        "f1_score": 0.5397,
+        "precision": 0.5763,
+        "support": 67,
+        "is_tail_class": false
+      },
+      "NV": {
+        "recall": 0.7374,
+        "f1_score": 0.7157,
+        "precision": 0.6952,
+        "support": 99,
+        "is_tail_class": false
+      },
+      "SCCKA": {
+        "recall": 0.5652,
+        "f1_score": 0.6047,
+        "precision": 0.65,
+        "support": 69,
+        "is_tail_class": false
+      },
+      "VASC": {
+        "recall": 0.5,
+        "f1_score": 0.6,
+        "precision": 0.75,
+        "support": 6,
+        "is_tail_class": true
+      }
+    }
+  },
+  "skin_tone_subgroup_metrics": {
+    "source": "results/exp2c_panderm_uniform_seed42/exp2c_panderm_uniform_artifacts/summary_metrics.json:subgroup_fairness",
+    "subgroups": {
+      "skin_tone_1": {
+        "sample_count": 12,
+        "accuracy": 0.5833,
+        "balanced_accuracy": 0.5833,
+        "macro_f1": 0.534,
+        "low_confidence": true
+      },
+      "skin_tone_2": {
+        "sample_count": 72,
+        "accuracy": 0.7778,
+        "balanced_accuracy": 0.7614,
+        "macro_f1": 0.6933,
+        "low_confidence": false
+      },
+      "skin_tone_3": {
+        "sample_count": 486,
+        "accuracy": 0.7119,
+        "balanced_accuracy": 0.3648,
+        "macro_f1": 0.3511,
+        "low_confidence": false
+      },
+      "skin_tone_4": {
+        "sample_count": 153,
+        "accuracy": 0.7516,
+        "balanced_accuracy": 0.5824,
+        "macro_f1": 0.5985,
+        "low_confidence": false
+      },
+      "skin_tone_5": {
+        "sample_count": 63,
+        "accuracy": 0.6825,
+        "balanced_accuracy": 0.52,
+        "macro_f1": 0.4221,
+        "low_confidence": false
+      }
+    },
+    "accuracy_disparity": 0.1944,
+    "balanced_accuracy_disparity": 0.3966,
+    "disparity_caveat": "High sample concentration in Tone 3 (n=486, 61.8%); Tone 1 has low sample support (n=12 < 30)."
+  },
+  "caveats": {
+    "source": "docs/STATUS_AUDIT.md and docs/PHASE4_DECISION_PACK.md",
+    "single_run": "All reported primary metrics originate from a single training run (seed 42).",
+    "seed_variance": "A replicate run with the identical recipe at seed 43 yielded test Macro-F1 = 0.3636, demonstrating substantial seed-to-seed variance (|Delta F1| = 0.1054).",
+    "internal_test_split": "Evaluated strictly on the held-out partition of MILK10k (N=786 dermoscopic lesions); zero external hospital validation.",
+    "tail_class_supports": {
+      "BEN_OTH": 8,
+      "DF": 5,
+      "INF": 5,
+      "MAL_OTH": 2,
+      "VASC": 6
+    },
+    "published_benchmark_incomparability": "Not comparable with the published MILK10k benchmark top-1 accuracy (53.6%), which used a different multi-institutional partition, different modality combinations, and different pre-training adapters.",
+    "clinical_decision_support_only": "Research prototype for decision-support auditing; strictly not approved for autonomous primary diagnostic triage."
+  }
+}

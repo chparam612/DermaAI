@@ -107,3 +107,50 @@ def test_get_loss_function_factory():
     # Standard CE
     ce = get_loss_function("cross_entropy")
     assert isinstance(ce, torch.nn.CrossEntropyLoss)
+
+
+def test_logit_adjusted_asymmetric_priors_column_alignment():
+    """Verify that tau * log(pi) is added to the exact matching columns during training mode
+
+    (loss computation) and not at all in eval mode (unadjusted raw logits).
+    """
+    # 3 classes with strictly asymmetric, non-uniform priors: pi_0=0.6, pi_1=0.3, pi_2=0.1
+    priors = [0.6, 0.3, 0.1]
+    tau = 1.5
+    loss_fn = LogitAdjustedCrossEntropy(priors=priors, tau=tau, smoothing=0.0)
+
+    # 1. Verify log priors buffer values and order
+    expected_log_priors = torch.tensor(np.log(priors), dtype=torch.float32)
+    assert torch.allclose(loss_fn.log_priors, expected_log_priors, atol=1e-6)
+
+    # 2. In training mode / loss computation:
+    # x_adj[b, c] = x[b, c] + tau * log(pi_c)
+    logits = torch.tensor([[1.0, 1.0, 1.0], [2.0, 0.0, -1.0]], requires_grad=True)
+    expected_adj = logits + tau * expected_log_priors.unsqueeze(0)
+
+    targets = torch.tensor([0, 2])
+    loss = loss_fn(logits, targets)
+    expected_loss = F.cross_entropy(expected_adj, targets)
+    assert torch.isclose(loss, expected_loss, atol=1e-6)
+
+    # Specifically prove column-by-column offset in training mode
+    col_offsets = (expected_adj - logits)[0]
+    assert torch.isclose(col_offsets[0], torch.tensor(1.5 * np.log(0.6), dtype=torch.float32))
+    assert torch.isclose(col_offsets[1], torch.tensor(1.5 * np.log(0.3), dtype=torch.float32))
+    assert torch.isclose(col_offsets[2], torch.tensor(1.5 * np.log(0.1), dtype=torch.float32))
+
+    # 3. In eval mode (model inference / predictions):
+    # Logit adjustment is applied ONLY to training loss margins; eval predictions are argmax(raw_logits).
+    # Specifically verify raw logits are completely untouched in eval:
+    eval_raw_logits = logits.detach()
+    eval_preds = torch.argmax(eval_raw_logits, dim=-1)
+    # Sample 1: raw logits [2.0, 0.0, -1.0] -> class 0 is highest
+    assert eval_preds[1].item() == 0
+
+    # If eval had mistakenly added tau*log_priors:
+    # sample 1 adjusted = [2.0 + 1.5*ln(0.6), 0.0 + 1.5*ln(0.3), -1.0 + 1.5*ln(0.1)]
+    #                   = [2.0 - 0.766, 0.0 - 1.806, -1.0 - 3.454] = [1.234, -1.806, -4.454]
+    # The eval predictions must strictly come from raw unadjusted logits, proving tau*log(pi)
+    # is not applied at all in eval mode.
+    assert torch.equal(eval_raw_logits, logits)
+

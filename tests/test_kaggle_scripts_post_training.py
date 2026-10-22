@@ -75,6 +75,7 @@ def test_exp1_post_training_pipeline(synthetic_predictions, tmp_path):
     # 3. File saving
     metrics_data = {
         "seed": 42,
+        "split_sha256": "a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36",
         "val_overall": test_metrics,
         "test_overall": test_metrics,
         "subgroup_fairness": subgroup_metrics,
@@ -87,6 +88,7 @@ def test_exp1_post_training_pipeline(synthetic_predictions, tmp_path):
     with open(metrics_path) as f:
         loaded = json.load(f)
     assert loaded["seed"] == 42
+    assert loaded["split_sha256"] == "a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36"
 
 
 def test_exp2c_and_exp3b_post_training_pipeline(synthetic_predictions, tmp_path):
@@ -134,3 +136,26 @@ def test_all_kaggle_scripts_ast_no_signature_mismatches():
         valid_calls, mismatches = audit_script(s)
         assert len(mismatches) == 0, f"Found signature mismatches in {s}: {mismatches}"
         assert len(valid_calls) > 0, f"No valid src calls found in {s}"
+
+def test_all_kaggle_scripts_metrics_writer_contains_split_sha256():
+    """Verify all 3 Kaggle scripts explicitly serialize split_sha256 in metrics_data dictionary."""
+    import ast
+    scripts = [
+        "kaggle/run_exp1_resnet50.py",
+        "kaggle/run_exp2c_panderm_uniform.py",
+        "kaggle/run_exp3b_panderm_logit_adj.py",
+    ]
+    for s in scripts:
+        with open(s, "r", encoding="utf-8") as f:
+            code = f.read()
+        tree = ast.parse(code)
+        found = False
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name) and target.id == "metrics_data":
+                        if isinstance(node.value, ast.Dict):
+                            keys = [k.value for k in node.value.keys if isinstance(k, ast.Constant)]
+                            if "split_sha256" in keys:
+                                found = True
+        assert found, f"'split_sha256' not found in metrics_data in {s}"

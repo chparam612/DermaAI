@@ -138,7 +138,7 @@ Per the protocol specified in `docs/PROGRESS.md`:
 
 ### 3.3 Protocol Application Verdict
 - **Margin**: Exp-2c outperforms Exp-3b on validation Macro-F1 by **+0.1027 (+10.27%)** and Exp-2 v2 by **+0.1000 (+10.00%)**.
-- **Noise Test**: The +10.27% advantage is ~5 times greater than the seed-to-seed noise range of Exp-2c ($0.0207$) or Exp-3b ($0.0177$). The lowest Exp-2c validation score ($0.4960$) is substantially higher than the highest Exp-3b score ($0.4125$).
+- **Validation Consistency**: On validation Macro-F1 (the protocol criterion), Exp-2c achieves $0.5167$ (seed 42) and $0.4960$ (seed 43), with both seeds exceeding the best Exp-3b validation score ($0.4125$) and Exp-2 v2 ($0.4064$). On the held-out test split, Exp-2c exhibits an inter-seed spread of $0.1054$ ($0.4690$ vs $0.3636$); however, following the strict validation-only selection rule, Exp-2c is the established base recipe.
 - **Simplicity**: Exp-2c uses standard uniform random sampling without sampling weights or logit adjustments, making it strictly simpler.
 - **Verdict**: The audit's assumption that **Exp-2c is the established base recipe for Phase 4 strictly and unambiguously follows from the rule**.
 

@@ -329,6 +329,7 @@ def run_exp1_kaggle(config: dict, smoke_test: bool = False, no_wandb: bool = Fal
     # Save metrics JSONs
     metrics_data = {
         "seed": seed,
+        "split_sha256": EXPECTED_SPLIT_HASH,
         "val_overall": val_metrics,
         "test_overall": test_metrics,
         "subgroup_fairness": subgroup_metrics,

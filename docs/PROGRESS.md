@@ -147,3 +147,12 @@
   - CPU Benchmarking (20 timed forward passes after 5 warm-ups):
     - Per-image latency: Median 234.13 ms (Mean 290.02 ms, Min 210.12 ms, Max 479.44 ms)
     - Process RAM: 388.4 MB pre-load, 1454.1 MB post-load, 1479.7 MB peak RSS.
+  - **Gate 2 Deliverables (Attention Rollout Explainability)**:
+    - Module: api/explain.py (AttentionRollout class).
+    - Architecture compatibility: PanDerm VisionTransformer without modifying external/panderm.
+    - Captures per-layer attention across all 12 blocks via dynamic non-invasive forward interception; handles CLS token and layer-scale.
+    - Properties: Output shape (14, 14) spatial patch grid, min-max normalized to [0.0, 1.0], deterministic (diff = 0.0).
+    - CPU Latency (N=10): Median 216.11 ms, Mean 220.74 ms.
+    - Output format: RGBA PNG Base64 Data URI (data:image/png;base64,...) with transparent background.
+    - 5 visual audit examples rendered to results/audit/rollout_examples/ (BCC, MEL, SCCKA, NV, BKL).
+    - Unit tests: 4 passing in tests/test_explain.py.

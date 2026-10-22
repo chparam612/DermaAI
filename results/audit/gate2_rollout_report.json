@@ -1,0 +1,107 @@
+{
+  "gate": "GATE 2",
+  "timestamp": "2026-10-22T10:30:39Z",
+  "method": "Attention Rollout (Abnar & Zuidema, 2020) via dynamic forward interception",
+  "target_architecture": "PanDerm ViT-Base (modeling_finetune.py)",
+  "external_panderm_modified": false,
+  "grid_size": "14x14 patches (196 tokens + 1 CLS token)",
+  "raw_shape": [
+    14,
+    14
+  ],
+  "values_range": [
+    0.0,
+    1.0
+  ],
+  "is_deterministic": true,
+  "cpu_latency_median_ms": 216.11,
+  "cpu_latency_mean_ms": 220.74,
+  "data_uri_format": "data:image/png;base64,... (RGBA)",
+  "rendered_examples": [
+    {
+      "example_index": 1,
+      "isic_id": "ISIC_8325963",
+      "lesion_id": "IL_0009339",
+      "true_class": "BCC",
+      "pred_class": "BCC",
+      "image_size": [
+        600,
+        450
+      ],
+      "orig_file": "results\\audit\\rollout_examples\\example_1_BCC_ISIC_8325963_orig.jpg",
+      "blended_file": "results\\audit\\rollout_examples\\example_1_BCC_ISIC_8325963_blended.jpg",
+      "overlay_file": "results\\audit\\rollout_examples\\example_1_BCC_ISIC_8325963_overlay.png",
+      "heatmap_min": 0.0,
+      "heatmap_max": 1.0,
+      "data_uri_prefix": "data:image/png;base64,iVBORw0KGgoAAAANSU..."
+    },
+    {
+      "example_index": 2,
+      "isic_id": "ISIC_3704603",
+      "lesion_id": "IL_0041758",
+      "true_class": "MEL",
+      "pred_class": "MEL",
+      "image_size": [
+        600,
+        450
+      ],
+      "orig_file": "results\\audit\\rollout_examples\\example_2_MEL_ISIC_3704603_orig.jpg",
+      "blended_file": "results\\audit\\rollout_examples\\example_2_MEL_ISIC_3704603_blended.jpg",
+      "overlay_file": "results\\audit\\rollout_examples\\example_2_MEL_ISIC_3704603_overlay.png",
+      "heatmap_min": 0.0,
+      "heatmap_max": 1.0,
+      "data_uri_prefix": "data:image/png;base64,iVBORw0KGgoAAAANSU..."
+    },
+    {
+      "example_index": 3,
+      "isic_id": "ISIC_1230865",
+      "lesion_id": "IL_0064763",
+      "true_class": "SCCKA",
+      "pred_class": "BKL",
+      "image_size": [
+        600,
+        450
+      ],
+      "orig_file": "results\\audit\\rollout_examples\\example_3_SCCKA_ISIC_1230865_orig.jpg",
+      "blended_file": "results\\audit\\rollout_examples\\example_3_SCCKA_ISIC_1230865_blended.jpg",
+      "overlay_file": "results\\audit\\rollout_examples\\example_3_SCCKA_ISIC_1230865_overlay.png",
+      "heatmap_min": 0.0,
+      "heatmap_max": 1.0,
+      "data_uri_prefix": "data:image/png;base64,iVBORw0KGgoAAAANSU..."
+    },
+    {
+      "example_index": 4,
+      "isic_id": "ISIC_8015399",
+      "lesion_id": "IL_0076321",
+      "true_class": "NV",
+      "pred_class": "NV",
+      "image_size": [
+        600,
+        450
+      ],
+      "orig_file": "results\\audit\\rollout_examples\\example_4_NV_ISIC_8015399_orig.jpg",
+      "blended_file": "results\\audit\\rollout_examples\\example_4_NV_ISIC_8015399_blended.jpg",
+      "overlay_file": "results\\audit\\rollout_examples\\example_4_NV_ISIC_8015399_overlay.png",
+      "heatmap_min": 0.0,
+      "heatmap_max": 1.0,
+      "data_uri_prefix": "data:image/png;base64,iVBORw0KGgoAAAANSU..."
+    },
+    {
+      "example_index": 5,
+      "isic_id": "ISIC_1225678",
+      "lesion_id": "IL_0017483",
+      "true_class": "BKL",
+      "pred_class": "MEL",
+      "image_size": [
+        600,
+        450
+      ],
+      "orig_file": "results\\audit\\rollout_examples\\example_5_BKL_ISIC_1225678_orig.jpg",
+      "blended_file": "results\\audit\\rollout_examples\\example_5_BKL_ISIC_1225678_blended.jpg",
+      "overlay_file": "results\\audit\\rollout_examples\\example_5_BKL_ISIC_1225678_overlay.png",
+      "heatmap_min": 0.0,
+      "heatmap_max": 1.0,
+      "data_uri_prefix": "data:image/png;base64,iVBORw0KGgoAAAANSU..."
+    }
+  ]
+}

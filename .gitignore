@@ -113,3 +113,6 @@ wandb/
 __pycache__/
 **/__pycache__/
 
+
+# Gate 2 visual check rendered images
+results/audit/rollout_examples/

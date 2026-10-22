@@ -1,0 +1,1 @@
+"""SkinCancerTracker FastAPI Backend Package."""

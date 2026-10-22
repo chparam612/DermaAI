@@ -156,3 +156,13 @@
     - Output format: RGBA PNG Base64 Data URI (data:image/png;base64,...) with transparent background.
     - 5 visual audit examples rendered to results/audit/rollout_examples/ (BCC, MEL, SCCKA, NV, BKL).
     - Unit tests: 4 passing in tests/test_explain.py.
+  - **Gate 3 Deliverables (FastAPI Backend Service)**:
+    - Package: api/ (app.py, config.py, schemas.py, inference.py, explain.py).
+    - Endpoints implemented:
+      - GET /api/health -> status, model_version, device, checkpoint sha256.
+      - GET /api/model-info -> model_version, 11 classes, malignant classes, provenance, limitations, disclaimer.
+      - POST /api/predict -> predicted_class, confidence, malignant_probability, per_class_probs, concept_scores (null), explainability_overlay (data URI), model_version, disclaimer, inference_ms, input_note.
+    - Requirements: In-memory image validation with PIL; max 10MB; JPEG/PNG strictly checked; CORSMiddleware with env-configured origins; disclaimer on every response; zero working-directory file leaks.
+    - Test Suite: 9 tests passing in tests/test_api.py (all error cases, probability sum = 1, in-memory purity).
+    - Smoke Test Script: scripts/demo_api_smoke.py verified on 3 test lesions (BCC, MEL, NV).
+    - Contract Diff: Documented in results/audit/api_contract_diff.md vs frontend types.ts.

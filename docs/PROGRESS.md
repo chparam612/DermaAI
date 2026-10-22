@@ -126,3 +126,24 @@
   - **Packaging Integrity**:
     - Updated `scripts/prepare_kaggle_upload.py` to enforce presence of all 3 Kaggle execution scripts and configs in `codebase.zip`.
     - Package integrity verified: all 72 repository unit tests pass inside the extracted package in an isolated temporary directory.
+
+
+---
+
+### Phase 6-lite: Demo Inference Backend & API Service
+- **Status**: In Progress (Gate 1 Done)
+- **Goal**: Demo-ready, honest FastAPI inference service for mentor/guide presentation.
+- **Demo Model**: PanDerm ViT-Base (checkpoints/exp2c_panderm_uniform_seed42/best_model.pt).
+- **Gate 1 Deliverables (Checkpoint Slimming & Parity Check)**:
+  - Exported slim weights: checkpoints/final/demo_model.pt (343,331,341 bytes, SHA-256: 137c7991202448e3a2c45b7f93dca680d44e05f3b8321882840514219c613b3d).
+  - Strict CPU loading with torch.load(..., weights_only=True, map_location='cpu') (load time: 4.0518s, missing keys: 0, unexpected keys: 0).
+  - Architecture: PanDermClassifier (panderm_base, 11 diagnostic classes).
+  - Preprocessing: src.data.transforms.get_panderm_eval_transforms (image_size=224, Resize(256), CenterCrop(224), Mean=[0.485, 0.456, 0.406], Std=[0.228, 0.224, 0.225]).
+  - Parity verification on N=50 stratified test lesions across all 11 classes (results/audit/gate1_parity_report.json):
+    - Max absolute probability difference: 0.004336 (Threshold <= 0.01)
+    - Mean absolute probability difference: 0.000072
+    - Argmax disagreements: 0 / 50 (Threshold <= 2)
+    - Status: **PASSED**
+  - CPU Benchmarking (20 timed forward passes after 5 warm-ups):
+    - Per-image latency: Median 234.13 ms (Mean 290.02 ms, Min 210.12 ms, Max 479.44 ms)
+    - Process RAM: 388.4 MB pre-load, 1454.1 MB post-load, 1479.7 MB peak RSS.

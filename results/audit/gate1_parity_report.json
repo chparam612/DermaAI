@@ -1,0 +1,535 @@
+{
+  "gate": "GATE 1",
+  "timestamp": "2026-10-22T10:08:54Z",
+  "model_architecture": "PanDermClassifier (panderm_base)",
+  "image_size": 224,
+  "resize_size": 256,
+  "normalization_mean": [
+    0.485,
+    0.456,
+    0.406
+  ],
+  "normalization_std": [
+    0.228,
+    0.224,
+    0.225
+  ],
+  "demo_checkpoint_path": "checkpoints\\final\\demo_model.pt",
+  "demo_checkpoint_size_bytes": 343331341,
+  "demo_checkpoint_sha256": "137c7991202448e3a2c45b7f93dca680d44e05f3b8321882840514219c613b3d",
+  "model_load_time_seconds": 4.0518,
+  "parity_sample_size": 50,
+  "max_abs_prob_diff": 0.004335661888122511,
+  "mean_abs_prob_diff": 7.218315421784471e-05,
+  "argmax_disagreements": 0,
+  "parity_passed": true,
+  "latency_median_ms": 234.13,
+  "latency_mean_ms": 290.02,
+  "latency_min_ms": 210.12,
+  "latency_max_ms": 479.44,
+  "ram_before_load_mb": 388.4,
+  "ram_after_load_mb": 1454.1,
+  "peak_ram_mb": 1479.7,
+  "sampled_lesions": [
+    {
+      "lesion_id": "IL_0252336",
+      "isic_id": "ISIC_6543284",
+      "true_class": "MAL_OTH",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 0.00021117706298823258,
+      "mean_abs_diff": 4.967118154330251e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_0321969",
+      "isic_id": "ISIC_9579888",
+      "true_class": "NV",
+      "ref_pred_class": "MEL",
+      "api_pred_class": "MEL",
+      "max_abs_diff": 0.00024473347663879486,
+      "mean_abs_diff": 3.8527084006500783e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_0424747",
+      "isic_id": "ISIC_3642704",
+      "true_class": "NV",
+      "ref_pred_class": "NV",
+      "api_pred_class": "NV",
+      "max_abs_diff": 0.0017226404190063827,
+      "mean_abs_diff": 0.00031373172215982216,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_0465605",
+      "isic_id": "ISIC_3045480",
+      "true_class": "MEL",
+      "ref_pred_class": "NV",
+      "api_pred_class": "NV",
+      "max_abs_diff": 3.295629560947505e-05,
+      "mean_abs_diff": 1.8353222483936255e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_0719888",
+      "isic_id": "ISIC_2975261",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 5.069828033443802e-05,
+      "mean_abs_diff": 1.0766238640652105e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_0909755",
+      "isic_id": "ISIC_9890254",
+      "true_class": "NV",
+      "ref_pred_class": "NV",
+      "api_pred_class": "NV",
+      "max_abs_diff": 0.0002600965499878205,
+      "mean_abs_diff": 3.199995766715821e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_1192220",
+      "isic_id": "ISIC_2321009",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 6.491231918337448e-05,
+      "mean_abs_diff": 8.190986126663687e-06,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_1364035",
+      "isic_id": "ISIC_4875335",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 0.00031136703491208007,
+      "mean_abs_diff": 3.649577475677541e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_1557433",
+      "isic_id": "ISIC_1826564",
+      "true_class": "BCC",
+      "ref_pred_class": "BKL",
+      "api_pred_class": "BKL",
+      "max_abs_diff": 0.0017093718528747859,
+      "mean_abs_diff": 0.00031033805091273037,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_1673815",
+      "isic_id": "ISIC_9927174",
+      "true_class": "BCC",
+      "ref_pred_class": "AKIEC",
+      "api_pred_class": "AKIEC",
+      "max_abs_diff": 0.00023321200609207476,
+      "mean_abs_diff": 6.805315136909928e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_1694504",
+      "isic_id": "ISIC_2328520",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 8.570728302004227e-05,
+      "mean_abs_diff": 2.031532570448989e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_1734179",
+      "isic_id": "ISIC_3103579",
+      "true_class": "MEL",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 9.863615036009854e-05,
+      "mean_abs_diff": 1.8375775786962532e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_1936294",
+      "isic_id": "ISIC_5044856",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 0.004335661888122511,
+      "mean_abs_diff": 0.0007686643585237524,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_2096474",
+      "isic_id": "ISIC_2872052",
+      "true_class": "SCCKA",
+      "ref_pred_class": "SCCKA",
+      "api_pred_class": "SCCKA",
+      "max_abs_diff": 8.93063163757285e-05,
+      "mean_abs_diff": 2.13592476113223e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_2704222",
+      "isic_id": "ISIC_3235332",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 8.614444732668591e-05,
+      "mean_abs_diff": 1.4075582214379369e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_2929786",
+      "isic_id": "ISIC_9977374",
+      "true_class": "SCCKA",
+      "ref_pred_class": "BKL",
+      "api_pred_class": "BKL",
+      "max_abs_diff": 0.0011102755069732906,
+      "mean_abs_diff": 0.00021353899205814967,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_2962292",
+      "isic_id": "ISIC_9348273",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 0.0004636740684509366,
+      "mean_abs_diff": 5.202788118611739e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_2989326",
+      "isic_id": "ISIC_8955200",
+      "true_class": "MEL",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 0.000315478897094712,
+      "mean_abs_diff": 7.950740445743744e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_3102698",
+      "isic_id": "ISIC_0084581",
+      "true_class": "SCCKA",
+      "ref_pred_class": "AKIEC",
+      "api_pred_class": "AKIEC",
+      "max_abs_diff": 0.0013757005691528157,
+      "mean_abs_diff": 0.0002586776143664656,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_3102768",
+      "isic_id": "ISIC_6909525",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 8.296947479247141e-05,
+      "mean_abs_diff": 1.5554992583664103e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_3146700",
+      "isic_id": "ISIC_9643914",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 0.00014479446411130859,
+      "mean_abs_diff": 1.6474792068652683e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_3360591",
+      "isic_id": "ISIC_7656588",
+      "true_class": "SCCKA",
+      "ref_pred_class": "SCCKA",
+      "api_pred_class": "SCCKA",
+      "max_abs_diff": 0.00018226461410519867,
+      "mean_abs_diff": 3.877805135195659e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_3565320",
+      "isic_id": "ISIC_2753382",
+      "true_class": "MEL",
+      "ref_pred_class": "INF",
+      "api_pred_class": "INF",
+      "max_abs_diff": 0.0006138535499572995,
+      "mean_abs_diff": 0.00011677971579270094,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_4308535",
+      "isic_id": "ISIC_8138627",
+      "true_class": "AKIEC",
+      "ref_pred_class": "BKL",
+      "api_pred_class": "BKL",
+      "max_abs_diff": 0.0015247336387633759,
+      "mean_abs_diff": 0.0002700406171300149,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_4396265",
+      "isic_id": "ISIC_0497849",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 0.0002511975526809651,
+      "mean_abs_diff": 4.857504656910585e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_4504514",
+      "isic_id": "ISIC_9232517",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 0.00015554428100583717,
+      "mean_abs_diff": 2.029641371965211e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_4896057",
+      "isic_id": "ISIC_2378626",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 4.839897155761719e-05,
+      "mean_abs_diff": 1.4376367926597462e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_5267553",
+      "isic_id": "ISIC_4189363",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 0.0002395851135253979,
+      "mean_abs_diff": 2.9836281640963806e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_5277754",
+      "isic_id": "ISIC_0655029",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 9.85093116759872e-05,
+      "mean_abs_diff": 1.7451464980836904e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_5283684",
+      "isic_id": "ISIC_8052859",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 8.901604890823589e-05,
+      "mean_abs_diff": 1.9001182336696824e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_5572380",
+      "isic_id": "ISIC_8586056",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 0.0009077872753143201,
+      "mean_abs_diff": 0.0001648989831344619,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_5959411",
+      "isic_id": "ISIC_8439407",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 0.00016654586791997605,
+      "mean_abs_diff": 3.303333751180451e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_6130939",
+      "isic_id": "ISIC_1793316",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 3.701877593997871e-05,
+      "mean_abs_diff": 7.384154964580424e-06,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_6192656",
+      "isic_id": "ISIC_2036909",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 0.00012399272918706128,
+      "mean_abs_diff": 1.7032771308318273e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_6767086",
+      "isic_id": "ISIC_7991319",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 8.339319229122566e-05,
+      "mean_abs_diff": 1.5632215017619275e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_6841105",
+      "isic_id": "ISIC_9390664",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 5.905961990360087e-05,
+      "mean_abs_diff": 8.04680588029009e-06,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_7385795",
+      "isic_id": "ISIC_8825637",
+      "true_class": "INF",
+      "ref_pred_class": "NV",
+      "api_pred_class": "NV",
+      "max_abs_diff": 0.00023529787063603091,
+      "mean_abs_diff": 6.41568782519256e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_7385851",
+      "isic_id": "ISIC_7326842",
+      "true_class": "AKIEC",
+      "ref_pred_class": "AKIEC",
+      "api_pred_class": "AKIEC",
+      "max_abs_diff": 0.00017587862014767364,
+      "mean_abs_diff": 2.694832562858128e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_7687935",
+      "isic_id": "ISIC_6141128",
+      "true_class": "VASC",
+      "ref_pred_class": "VASC",
+      "api_pred_class": "VASC",
+      "max_abs_diff": 0.00021714401245120918,
+      "mean_abs_diff": 3.403619579971171e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_7760285",
+      "isic_id": "ISIC_1346867",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 6.950769424440839e-05,
+      "mean_abs_diff": 1.1453181396833444e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_8007348",
+      "isic_id": "ISIC_3762115",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 4.205703735349342e-05,
+      "mean_abs_diff": 1.2192103944039656e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_8110471",
+      "isic_id": "ISIC_4247695",
+      "true_class": "BKL",
+      "ref_pred_class": "BKL",
+      "api_pred_class": "BKL",
+      "max_abs_diff": 6.19955062866051e-05,
+      "mean_abs_diff": 1.1462067986074986e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_8229749",
+      "isic_id": "ISIC_6538645",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 0.00013020515441897196,
+      "mean_abs_diff": 1.3797004485674668e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_8845602",
+      "isic_id": "ISIC_8618352",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 5.3363323211708114e-05,
+      "mean_abs_diff": 1.1477954187179663e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_9095433",
+      "isic_id": "ISIC_9483507",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 2.69009590149194e-05,
+      "mean_abs_diff": 9.036967637866443e-06,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_9132121",
+      "isic_id": "ISIC_0811596",
+      "true_class": "BEN_OTH",
+      "ref_pred_class": "BKL",
+      "api_pred_class": "BKL",
+      "max_abs_diff": 0.00015863800048832033,
+      "mean_abs_diff": 1.713551738858561e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_9409547",
+      "isic_id": "ISIC_9596173",
+      "true_class": "MEL",
+      "ref_pred_class": "NV",
+      "api_pred_class": "NV",
+      "max_abs_diff": 6.789188385014633e-05,
+      "mean_abs_diff": 1.0984321805568172e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_9679718",
+      "isic_id": "ISIC_6312345",
+      "true_class": "DF",
+      "ref_pred_class": "DF",
+      "api_pred_class": "DF",
+      "max_abs_diff": 0.00048362016677860886,
+      "mean_abs_diff": 8.987205367197098e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_9701930",
+      "isic_id": "ISIC_1417674",
+      "true_class": "BCC",
+      "ref_pred_class": "BCC",
+      "api_pred_class": "BCC",
+      "max_abs_diff": 0.0005046410560607395,
+      "mean_abs_diff": 8.069881070743461e-05,
+      "argmax_match": true
+    },
+    {
+      "lesion_id": "IL_9725975",
+      "isic_id": "ISIC_3706698",
+      "true_class": "BKL",
+      "ref_pred_class": "SCCKA",
+      "api_pred_class": "SCCKA",
+      "max_abs_diff": 0.00011374543309211615,
+      "mean_abs_diff": 3.004358250715492e-05,
+      "argmax_match": true
+    }
+  ]
+}

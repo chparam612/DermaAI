@@ -11,12 +11,12 @@ A modular, reproducible deep learning pipeline for skin lesion classification an
 
 ## 1. Project Overview & Verified Benchmark Results
 
-`SkinCancerTracker` benchmarks dermatology computer vision models on **MILK10k** under a patient- and lesion-level stratified partition (SHA-256: `a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36`):
+`SkinCancerTracker` benchmarks dermatology computer vision models on **MILK10k** under a patient- and lesion-level stratified partition (SHA-256: `a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36`) evaluated across two seeds per arm (42, 43); a third seed was not run:
 - **Total Dataset**: 5,240 unique lesions (10,480 images; paired dermoscopic + clinical close-up).
-- **Split Distribution**:
-  - Train: 3,668 lesions (70%)
-  - Validation: 786 lesions (15%)
-  - Test: 786 lesions (15%)
+- **Split Distribution (verified against `data/splits/split_summary.json`)**:
+  - Train: 3,668 lesions / 7,336 images (70.0%)
+  - Validation: 786 lesions / 1,572 images (15.0%)
+  - Test: 786 lesions / 1,572 images (15.0%)
 - **Benchmark Modality**: Dermoscopic images (exactly 786 held-out test lesions evaluated, 1-to-1 bijection, zero leakage).
 
 ### Official Benchmark Ablation Table (Held-Out Test Split, $N=786$)
@@ -49,11 +49,11 @@ Evaluated in [`results/analysis/phase2_phase3_paired_bootstrap.json`](results/an
 
 1. **PanDerm ViT-Base vs ResNet-50 (Exp-2c minus Exp-1)**:
    - Pooled Macro-F1 difference: **+0.0077** (95% CI `[-0.0525, 0.0627]`, $P(\Delta > 0) = 0.5925$).
-   - The 95% confidence interval crosses zero, indicating no statistically significant difference in Macro-F1 between the two architectures under uniform sampling on $N=786$.
+   - The 95% confidence interval crosses zero, indicating that the 95% bootstrap CI does not exclude 0 for Macro-F1 between the two architectures under uniform sampling on $N=786$.
 2. **Train-Time Logit Adjustment vs Uniform Control (Exp-3b minus Exp-2c)**:
-   - Pooled Macro-F1 difference: **-0.0503** (95% CI `[-0.1118, -0.0061]`, $P(\Delta > 0) = 0.0140$).
-   - Pooled Accuracy difference: **-0.4701** (95% CI `[-0.5064, -0.4338]`, $P(\Delta > 0) = 0.0000$).
-   - Pooled Malignant Recall difference: **+0.0506** (95% CI `[0.0335, 0.0689]`, $P(\Delta > 0) = 1.0000$).
+   - Pooled Macro-F1 difference: **-0.0503** (95% CI `[-0.1118, -0.0061]`, $P(\Delta > 0) = 0.0140$). The Exp-3b minus Exp-2c pooled macro-F1 CI is `[-0.1118, -0.0061]` (95% bootstrap CI excludes 0), while seed 43 alone includes 0 (`[-0.0823, 0.0598]`).
+   - Pooled Accuracy difference: **-0.4701** (95% CI `[-0.5064, -0.4338]`, $P(\Delta > 0) = 0.0000$, 95% bootstrap CI excludes 0).
+   - Pooled Malignant Recall difference: **+0.0506** (95% CI `[0.0335, 0.0689]`, $P(\Delta > 0) = 1.0000$, 95% bootstrap CI excludes 0).
    - Train-time logit adjustment with fixed $\tau=1.0$ causes Basal Cell Carcinoma recall to drop to **0.0000** (0/391 correctly predicted), collapsing accuracy to ~23%.
 3. **Post-Hoc Logit Adjustment Validation Sweep**:
    - Sweeping $\tau \in [0.0, 1.5]$ on the validation split yielded optimal $\tau^*=0.00$ (seed 42) and $\tau^*=0.10$ (seed 43), yielding negligible change on the test set (+0.0010 Macro-F1 on seed 43), confirming a null effect.
@@ -155,3 +155,16 @@ pytest -v
 - **Phase 2 Baseline Experiments**: [`docs/phase2_baseline_experiments.md`](docs/phase2_baseline_experiments.md)
 - **Phase 3 Logit Adjustment**: [`docs/phase3_logit_adjustment.md`](docs/phase3_logit_adjustment.md)
 - **Mathematical Formulations Reference**: [`docs/technical_reference/ALL_FORMULAS_AND_MATHEMATICS.md`](docs/technical_reference/ALL_FORMULAS_AND_MATHEMATICS.md)
+
+---
+
+## 7. Known Caveats & Methodological Notes
+
+1. **Recent PyTorch Checkpoint Loading**:
+   Exp-2c seed 42 post-training evaluation was re-evaluated from `best_model.pt` with `weights_only=False` because recent PyTorch (weights_only=True default) rejected numpy scalar objects saved in checkpoint dictionaries in `torch.load()`.
+2. **W&B Logging**:
+   Batch training runs were offline because the WANDB_API_KEY secret was not attached to the Kaggle notebook and the scripts default to offline unless --online is passed.
+3. **Random Seeds**:
+   Due to GPU compute quota allocations, runs used two seeds per arm (42, 43); a third seed was not run.
+4. **Significance Criteria (95% Bootstrap CI Excludes 0)**:
+   Differences are reported as significant when the 95% bootstrap CI excludes 0. For paired bootstrap testing between Exp-3b and Exp-2c, the Exp-3b minus Exp-2c pooled macro-F1 CI is `[-0.1118, -0.0061]` (95% bootstrap CI excludes 0), while seed 43 alone includes 0 (`[-0.0823, 0.0598]`).

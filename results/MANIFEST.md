@@ -21,7 +21,11 @@ Machine-readable JSON schema is available at [`results/manifest.json`](file:///C
 | **Exp-3b (seed 43)** | PanDerm ViT-Base | Train-Time LA ($\tau=1.0$), Uniform | 43 | 25 | 0.2379 | 0.3653 | 0.9280 | 0.7753 | 0.8084 | `a4346dcf...` (Match) | 786 |
 
 *Dataset Partition SHA-256 Contract*: `a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36` (`data/splits/lesion_level_splits.csv`).  
-*Held-out test set size*: exactly 786 dermoscopic images, 786 unique lesions (1-to-1 bijection, 0 patient/lesion leakage).
+*Dataset Total & Partition Sizes (verified against `data/splits/split_summary.json`)*:
+- **Total Dataset**: 5,240 unique lesions, 10,480 images (paired dermoscopic + clinical close-up).
+- **Train Split**: 3,668 lesions, 7,336 images (70.0%).
+- **Validation Split**: 786 lesions, 1,572 images (15.0%).
+- **Test Split**: 786 lesions, 1,572 images (15.0%); exactly 786 dermoscopic test images evaluated (1-to-1 lesion bijection, 0 patient/lesion leakage).
 
 ---
 
@@ -94,7 +98,7 @@ Machine-readable JSON schema is available at [`results/manifest.json`](file:///C
 ## 3. Known Caveats & Methodological Notes
 
 1. **Exp-2c Seed 42 Re-evaluation**:
-   During the initial Kaggle execution of Exp-2c seed 42, post-training evaluation failed because PyTorch 2.6 defaults to `weights_only=True` in `torch.load()`, which rejected numpy scalar objects saved in the checkpoint dictionary. The model weights themselves trained successfully to completion. Evaluation was subsequently re-executed from `best_model.pt` (epoch 27 checkpoint) after setting `weights_only=False`. As a consequence, `runtime_info` for this specific run reflects the re-evaluation session rather than the 30-epoch training duration.
+   During the initial Kaggle execution of Exp-2c seed 42, post-training evaluation failed because recent PyTorch (weights_only=True default) rejected numpy scalar objects saved in the checkpoint dictionary in `torch.load()`. The model weights themselves trained successfully to completion. Evaluation was subsequently re-executed from `best_model.pt` (epoch 27 checkpoint) after setting `weights_only=False`. As a consequence, `runtime_info` for this specific run reflects the re-evaluation session rather than the 30-epoch training duration.
 
 2. **Malignant False Negative Rate (`malignant_fnr`)**:
    `malignant_fnr` was not explicitly stored as a named scalar field in early summary metrics JSON files. It is mathematically and clinically defined as the complement of malignant recall:
@@ -102,13 +106,13 @@ Machine-readable JSON schema is available at [`results/manifest.json`](file:///C
    Across all six runs, this derived quantity represents the proportion of true malignancies that collapsed into benign predictions.
 
 3. **Exp-3b $\tau=1.0$ BCC Recall Collapse**:
-   Train-time logit adjustment with the uncalibrated theoretical default $\tau=1.0$ applied an overly aggressive negative margin penalty ($\tau \log \pi_{\text{BCC}} = 1.0 \times \log(0.4790) = -0.736$) against the dominant head class. Consequently, Basal Cell Carcinoma (`BCC`) recall collapsed to exactly **0.0000** (0 out of 391 test BCC lesions correctly classified), plunging overall test accuracy to ~23%. This empirically demonstrates that while train-time logit adjustment Fisher-consistently targets balanced error in theory, default $\tau=1.0$ causes destructive under-prediction of majority pathologies in clinical dermatology without validation-set $\tau$ attenuation.
+   Train-time logit adjustment with the uncalibrated theoretical default $\tau=1.0$ applied an overly aggressive negative margin penalty ($\tau \log \pi_{\text{BCC}} = 1.0 \times \log(0.4790) = -0.736$) against the dominant head class. Consequently, Basal Cell Carcinoma (`BCC`) recall collapsed to exactly **0.0000** (0 out of 391 test BCC lesions correctly classified), plunging overall test accuracy to ~23%. This empirically demonstrates that while train-time logit adjustment Fisher-consistently targets balanced error in theory, default $\tau=1.0$ causes destructive under-prediction of majority pathologies in clinical dermatology without validation-set $\tau$ attenuation. For paired bootstrap testing against Exp-2c, the Exp-3b minus Exp-2c pooled macro-F1 CI is [-0.1118, -0.0061] (95% bootstrap CI excludes 0), while seed 43 alone includes 0 ([-0.0823, 0.0598]).
 
 4. **W&B Offline Execution**:
-   All batch training runs were executed with W&B logging set to offline mode (`offline: true` / `WANDB_MODE=offline`), preventing training interrupts from external network latency or missing credentials.
+   All batch training runs were executed with W&B logging set to offline because the WANDB_API_KEY secret was not attached to the Kaggle notebook and the scripts default to offline unless --online is passed.
 
 5. **Cell 7 `--online` Flag Hang on Kaggle**:
    Passing `--online` directly to the execution script in Kaggle notebook Cell 7 without an attached `WANDB_API_KEY` secret causes the Python process to block indefinitely waiting for interactive authentication on `stdin`. Notebooks were updated to handle secret retrieval gracefully, falling back to offline logging when secrets are absent.
 
 6. **Two Seeds Only ($n=2$)**:
-   Due to Kaggle GPU monthly quota allocations (30 GPU-hours per week), runs were constrained to two independent random seeds ($42$ and $43$). All summary statistics report sample standard deviations ($s = \sqrt{\frac{1}{n-1}\sum (x_i - \bar{x})^2}$) across $n=2$ rather than asymptotic normal bounds.
+   Due to Kaggle GPU monthly quota allocations (30 GPU-hours per week), runs were constrained to two seeds per arm (42, 43); a third seed was not run. All summary statistics report sample standard deviations ($s = \sqrt{\frac{1}{n-1}\sum (x_i - \bar{x})^2}$) across $n=2$ rather than asymptotic normal bounds.

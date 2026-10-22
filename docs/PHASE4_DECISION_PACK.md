@@ -118,7 +118,7 @@ In both random seeds, **0 out of 391** test Basal Cell Carcinoma lesions were co
 | **VASC** | Benign | 6 | 0.5000 | 0.0000 | 0.6667 | 0.6667 | **+0.4167** |
 
 *Clinical Trade-Off Analysis*:
-Train-time logit adjustment ($\tau=1.0$) achieved its theoretical design goal on extreme tail classes (`MAL_OTH` recall increased from 0.0 to 0.75; `VASC` from 0.25 to 0.67; `AKIEC` from 0.41 to 0.53). However, because BCC accounts for 47.9% of training lesions, subtracting $\tau \log \pi_{\text{BCC}} = -0.736$ severely depressed majority logits, causing total collapse of BCC sensitivity from 87.3% to 0.0% and crashing overall accuracy from 70.4% to 23.3%.
+Train-time logit adjustment ($\tau=1.0$) achieved its theoretical design goal on extreme tail classes (`MAL_OTH` recall increased from 0.0 to 0.75; `VASC` from 0.25 to 0.67; `AKIEC` from 0.41 to 0.53). However, because BCC accounts for 47.9% of training lesions, subtracting $\tau \log \pi_{\text{BCC}} = -0.736$ severely depressed majority logits, causing total collapse of BCC sensitivity from 87.3% (Exp-2c mean: 91.05% s42, 83.63% s43) to 0.0% and crashing overall accuracy from 70.4% (Exp-2c mean: 72.14% s42, 68.58% s43) to 23.3% (Exp-3b mean: 22.90% s42, 23.79% s43).
 
 ---
 

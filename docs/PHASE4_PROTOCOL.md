@@ -2,7 +2,7 @@
 
 **Document Status**: Official Phase 4 Specification & Execution Protocol  
 **Pre-requisite Audit**: `docs/PHASE4_DECISION_PACK.md` & `docs/EXP3B_DIAGNOSIS.md`  
-**Protocol Version**: 1.0 (Stability-Aware & Collapse-Guarded)
+**Protocol Version**: 2.0 (Stability-Aware, Multi-Seed & Calibrated Guard)
 
 ---
 
@@ -13,9 +13,14 @@ Phase 4 introduces clinically structured inductive biases into foundation model 
 2. **Exp-4b**: Targeted Supervised Contrastive Learning ($\mathcal{L}_{\text{TSC}}$) enforcing uniform hypersphere separation across class prototypes.
 
 ### Core Principles Established by Phase 2/3 Audits:
-- **Base Recipe**: Phase 4 builds strictly upon **Exp-2c** (PanDerm ViT-Base, uniform shuffling, label smoothing $\epsilon=0.1$, AdamW with layer decay 0.9, lr $2.5\times 10^{-4}$), which won the base recipe selection protocol with validation Macro-F1 $0.5064$ (+10.0% over weighted sampling).
-- **Collapse Guarding**: Following the Exp-3b diagnosis where default margin penalties caused majority collapse onto rare classes ($D(\text{BCC}, \text{MAL\_OTH}) = +1.0744$), all Phase 4 recipes require runtime gating to prevent degradation of majority clinical sensitivity.
-- **Dual-Track Metrics**: Model selection uses validation Macro-F1, while clinical reporting tracks stability-aware metrics (Malignant AUROC and Malignant FNR at matched operational specificities $S \in \{0.50, 0.60, 0.70\}$).
+- **Base Recipe**: Phase 4 builds strictly upon **Exp-2c** (PanDerm ViT-Base, uniform shuffling, label smoothing $\epsilon=0.1$, AdamW with layer decay 0.9, lr $2.5\times 10^{-4}$).  
+  *Justification*: Exp-2c is the simplest recipe (standard uniform shuffling without sampling weights or prior adjustments) and its test Macro-F1 ($0.4690$ s42, $0.3636$ s43) is not worse than alternative baseline recipes. The earlier "5x noise" validation argument is explicitly rejected.
+- **Seeds Protocol**: All Phase 4 arms will be evaluated across **three random seeds: 42, 43, and 44** to resolve inter-seed variance.
+- **Primary Clinical Evaluation Metrics**:
+  1. **Malignant FNR at Matched Specificity ($S=0.60$)**: Clinical triage sensitivity when false-alarm rates are constrained on benign lesions.
+  2. **Malignant AUROC ($p_{\text{mal}} = \sum_{c \in \text{malignant}} p_c$)**: Threshold-free discriminative performance distinguishing malignant from benign lesions.
+  3. **Multi-Class Macro-F1**: Monitored as standard benchmark metric, but acknowledged as sensitive to single-sample volatility in extreme tail classes.
+- **Collapse Guard**: Validation threshold guard is set to **USER TO DECIDE** (see Section 2.3 for Exp-2c reference numbers).
 
 ---
 
@@ -35,9 +40,22 @@ where $p_k(\mathbf{x}) = \operatorname{softmax}(\mathbf{x})_k$, and $C(y, k)$ is
 To prevent the cost penalty from dominating cross-entropy gradients:
 - **Sweep Grid**: $\alpha \in \{0.25, 0.50, 1.00, 2.00\}$ on random seed 42.
 - **Compute Budget**: 4 runs $\times$ ~1,800s wall-clock = ~2.0 Kaggle GPU-hours on Tesla T4.
-- **Selection Criterion**: $\alpha^*$ is chosen to maximize validation Macro-F1 subject to the stability gate:
-  $$\text{Validation BCC Recall} \ge 0.80 \quad \text{and} \quad \text{Validation Malignant FNR} \le 0.12$$
-- **Confirmation Run**: Execute $\alpha^*$ on seed 43 (~0.50 GPU-hours) before testing.
+- **Selection Criterion**: $\alpha^*$ is chosen to optimize validation performance subject to the collapse guard.
+- **Confirmation Runs**: Execute $\alpha^*$ on seeds 43 and 44 (~1.0 GPU-hours) before test split reporting.
+
+### 2.3 Collapse Guard & Exp-2c Reference Numbers
+To prevent majority collapse (as observed in Exp-3b where BCC recall collapsed to 0.0), a validation triage guard is applied during checkpoint selection:
+- **Validation Specificity Guard Threshold**: **[USER TO DECIDE]**
+- **Exp-2c Reference Performance** (for setting the decision threshold):
+  - **Exp-2c Seed 42**:
+    - Malignant AUROC: $0.8418$ `[0.8071, 0.8735]`
+    - Validation $\theta_{0.60} = 0.4446$ $\to$ Test Malignant FNR = **0.0446** `[0.0279, 0.0628]` (Test Spec: 0.4581)
+    - Test BCC Recall: $0.9105$ | Test NV Recall: $0.7374$
+  - **Exp-2c Seed 43**:
+    - Malignant AUROC: $0.8676$ `[0.8399, 0.8949]`
+    - Validation $\theta_{0.60} = 0.4969$ $\to$ Test Malignant FNR = **0.0497** `[0.0330, 0.0687]` (Test Spec: 0.4631)
+    - Test BCC Recall: $0.8363$ | Test NV Recall: $0.6970$
+- *Recommended Guard Default*: Assert Validation BCC Recall $\ge 0.80$ and Validation Malignant FNR $\le 0.08$ at $\theta_{0.60}$.
 
 ---
 
@@ -54,7 +72,8 @@ $$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{task}} + \lambda \mathcal{L}_{
 $$\mathcal{L}_{\text{TSC}}(\hat{\mathbf{z}}_i, y_i) = -\log \frac{\exp\left(\frac{\hat{\mathbf{z}}_i^\top \mathbf{t}_{y_i}}{\tau}\right)}{\sum_{c=1}^K \exp\left(\frac{\hat{\mathbf{z}}_i^\top \mathbf{t}_c}{\tau}\right)}$$
 where $\hat{\mathbf{z}}_i$ is the normalized feature embedding from the ViT backbone before the linear classification head, and temperature $\tau = 0.1$.
 - **Sweep Grid**: $\lambda \in \{0.05, 0.10, 0.20\}$ on seed 42.
-- **Compute Budget**: 3 runs $\times$ ~0.50h = ~1.5 Kaggle GPU-hours.
+- **Confirmation Runs**: Seeds 43 and 44 on optimal $\lambda^*$.
+- **Compute Budget**: 3 sweep runs + 2 confirm runs = ~2.5 Kaggle GPU-hours.
 
 ---
 
@@ -62,11 +81,11 @@ where $\hat{\mathbf{z}}_i$ is the normalized feature embedding from the ViT back
 
 ### 4.1 Required Metrics Per Run
 Every completed Phase 4 run must compute and serialize:
-1. **Multi-Class Classification**: Macro-F1, Weighted-F1, Overall Accuracy, Balanced Accuracy, Per-Class Precision/Recall/F1/Support (11 classes).
-2. **Binary Clinical Triage**: Malignant Sensitivity, Malignant Specificity, Malignant FNR ($1 - \text{Sens}$), FN count, FP count.
-3. **Stable Clinical Metrics**:
+1. **Primary Clinical Metrics**:
+   - Malignant FNR at matched operational specificity $S=0.60$ (with threshold calibrated on validation benign lesions and applied to test).
    - Malignant AUROC ($p_{\text{mal}} = \sum_{c \in \text{malignant}} p_c$).
-   - Malignant FNR at operational specificities $\{0.50, 0.60, 0.70\}$ with threshold calibrated on validation benign lesions and applied to test.
+2. **Multi-Class Classification**: Macro-F1, Weighted-F1, Overall Accuracy, Balanced Accuracy, Per-Class Precision/Recall/F1/Support (11 classes).
+3. **Binary Clinical Triage**: Malignant Sensitivity, Malignant Specificity, FN count, FP count.
 4. **Subgroup Fairness**: Macro-F1, Balanced Accuracy, and Malignant FNR disaggregated across Fitzpatrick skin tone classes (`Tone 1`, `Tone 2`, `Tone 3`, `Tone 4`).
 5. **Data Provenance**: Explicit serialization of `split_sha256: "a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36"` inside `metrics.json`.
 

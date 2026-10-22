@@ -174,3 +174,9 @@
     - Skin-tone subgroups: Tone 1 (n=12, low_confidence=true), Tone 2 (n=72), Tone 3 (n=486), Tone 4 (n=153), Tone 5 (n=63).
     - Honest Caveats Embedded: Single-run provenance, seed 43 variance (|Delta F1| = 0.1054), internal split limitations, tail class supports ({'BEN_OTH': 8, 'DF': 5, 'INF': 5, 'MAL_OTH': 2, 'VASC': 6}), and benchmark incomparability with published 53.6%.
     - Test Suite: tests/test_frontend_report.py passing.
+  - **Gate 5 Deliverables (Demo Packaging & Runbook)**:
+    - Requirements: api/requirements.txt (pinned versions from environment).
+    - Launcher: run_demo.ps1 (PowerShell script launching uvicorn on 127.0.0.1:8000 with checkpoint verification).
+    - Runbook: docs/DEMO_RUNBOOK.md (start/stop instructions, health check, automated smoke test, troubleshooting, 5-sample honest rehearsal checklist with true BCC, NV, BKL false alarm, and Melanoma miss).
+    - Deployment Guide: docs/DEPLOYMENT_OPTIONS.md (measured 1.48 GB RAM requirement; comparison of local, Cloudflare tunnel, and cloud hosting; quoted free-tier limits for HF Spaces, Cloud Run, Render; CC-BY-NC 4.0 MILK10k and CC-BY-NC-ND 4.0 PanDerm license compliance).
+    - Phase 6-lite status: **DONE**.

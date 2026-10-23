@@ -86,7 +86,7 @@ Every completed Phase 4 run must compute and serialize:
    - Malignant AUROC ($p_{\text{mal}} = \sum_{c \in \text{malignant}} p_c$).
 2. **Multi-Class Classification**: Macro-F1, Weighted-F1, Overall Accuracy, Balanced Accuracy, Per-Class Precision/Recall/F1/Support (11 classes).
 3. **Binary Clinical Triage**: Malignant Sensitivity, Malignant Specificity, FN count, FP count.
-4. **Subgroup Fairness**: Macro-F1, Balanced Accuracy, and Malignant FNR disaggregated across Fitzpatrick skin tone classes (`Tone 1`, `Tone 2`, `Tone 3`, `Tone 4`).
+4. **Subgroup Fairness**: Macro-F1, Balanced Accuracy, and Malignant FNR disaggregated across MILK10k skin tone classes (`Tone 1`, `Tone 2`, `Tone 3`, `Tone 4`, `Tone 5`).
 5. **Data Provenance**: Explicit serialization of `split_sha256: "a4346dcf4d91a8bf6382a26c42618be327975de7f17596ce1fddfbcf1e160c36"` inside `metrics.json`.
 
 ### 4.2 Statistical Significance Testing

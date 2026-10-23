@@ -98,7 +98,7 @@ Logs disaggregated diagnostic statistics across all 11 classes to detect minorit
 - Columns: `class_name`, `support`, `precision`, `recall`, `f1_score`, `specificity`, `balanced_accuracy`.
 
 ### Table 2: Per-Skin-Tone Fairness Auditing (`eval/per_skin_tone_metrics`)
-Logs disaggregated metrics across Fitzpatrick / Monk phototypes to evaluate demographic equity:
+Logs disaggregated metrics across demographic skin tone subgroups (`skin_tone_class` 0 through 5) to evaluate demographic equity:
 - Columns: `skin_tone_group`, `support`, `accuracy`, `balanced_accuracy`, `precision`, `recall`, `f1_score`, `auc`.
 - **Denominator Safety Rule**: Distinguishes unannotated data (`Unannotated / Unknown`) without fabricating zeros or skewing denominators.
 

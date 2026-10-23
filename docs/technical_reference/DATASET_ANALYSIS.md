@@ -19,7 +19,7 @@
 | **Total Unique Lesions** | **$5,240$** patient lesion clusters |
 | **Image-to-Lesion Ratio** | Exactly **$2.00$** images per lesion across the complete dataset |
 | **Diagnostic Classes ($K$)** | **$11$** mutually exclusive classes |
-| **Demographic Fairness Annotation** | `skin_tone_class` (Monk/Fitzpatrick phototype integers 0 through 5) |
+| **Demographic Fairness Annotation** | `skin_tone_class` (MILK10k integer categories 0 through 5; 0 = very dark, 5 = very light) |
 | **Clinical Biomarkers** | 7 MONET concept markers (ulceration, hair, vessels, erythema, pigment, fluid, pen ink) |
 
 ---
@@ -129,17 +129,31 @@ $$\rho = \frac{N_{\max}}{N_{\min}} = \frac{N_{\text{BCC}}}{N_{\text{MAL\_OTH}}} 
 ## 4. Skin-Tone Demographic Distribution & Algorithmic Fairness
 
 ### 4.1 Empirical Subgroup Counts
-Skin tones are labeled in `training_input.csv` under `skin_tone_class` without synthetic imputation or fabrication:
+In the MILK10k dataset, skin tone is recorded under the metadata variable `skin_tone_class`. Per the official MILK10k specification (Tschandl et al., *J. Invest. Dermatol.* and the ISIC Challenge benchmark), `skin_tone_class` is an integer categorical scale running from **0 to 5**, where:
+- **`0`**: **Very dark** skin tones
+- **`5`**: **Very light** skin tones
 
-| Skin Tone Class | Representative Phototype | Image Count | Percentage | Unique Lesions | Representation Tier |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Class 3** | Fitzpatrick III (Medium / Olive) | $6,348$ | $60.57\%$ | $3,174$ | Majority ($>60\%$) |
-| **Class 4** | Fitzpatrick IV (Moderate Brown) | $2,132$ | $20.34\%$ | $1,066$ | Substantial ($20\%$) |
-| **Class 2** | Fitzpatrick II (Fair / Light) | $1,012$ | $9.66\%$ | $506$ | Moderate ($10\%$) |
-| **Class 5** | Fitzpatrick V/VI (Dark Brown/Black)| $766$ | $7.31\%$ | $383$ | Underrepresented ($7\%$) |
-| **Class 1** | Fitzpatrick I (Very Pale / Nordic) | $210$ | $2.00$ % | $105$ | Sparse ($2\%$) |
-| **Class 0** | Unpigmented / Albinism / Rare | $12$ | $0.11\%$ | $6$ | Extremely Sparse ($0.1\%$) |
-| **Total** | *All Phototypes* | **$10,480$** | **$100.00\%$** | **$5,240$** | Complete (0 Nulls) |
+> [!IMPORTANT]
+> `skin_tone_class` is **not** the Fitzpatrick scale. It was intentionally constructed by the dataset creators to be distinct from Fitzpatrick phototypes (which run in the opposite direction, from Type I = very light to Type VI = very dark) to avoid clinical ambiguity and standardize multi-institutional annotations.
+> 
+> *Correction Note*: An earlier version of this table mixed up units (reporting total paired image counts, $N=10,480$, rather than unique lesion counts) and inverted the scale direction by incorrectly mapping classes 0-5 to Fitzpatrick phototypes (labeling 0 as "Unpigmented/Albinism" and 5 as "Dark Brown/Black"). The table below replaces that tabulation with the verified per-split **lesion counts** from [`results/audit/skin_tone_splits.md`](../../results/audit/skin_tone_splits.md).
+
+#### Verified Per-Split Lesion Distribution ($N=5,240$ unique lesions)
+
+Each unique lesion has identical skin tone across paired clinical & dermoscopic modalities. Because baseline experiments evaluate on single-modality dermoscopic images (1 image per lesion), the unique lesion counts below correspond exactly to the evaluation sample sizes in each split:
+
+| `skin_tone_class` | Polarity / Spectrum | Train (Lesions) | Validation (Lesions) | Test (Lesions) | Total (All Splits) |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Class 0** | Very Dark | 2 | 4 | 0 | 6 |
+| **Class 1** | Dark | 82 | 11 | 12 | 105 |
+| **Class 2** | Medium-Dark | 358 | 76 | 72 | 506 |
+| **Class 3** | Medium (Majority) | 2,198 | 490 | 486 | 3,174 |
+| **Class 4** | Light | 754 | 159 | 153 | 1,066 |
+| **Class 5** | Very Light | 274 | 46 | 63 | 383 |
+| **NULL / Missing** | — | 0 | 0 | 0 | 0 |
+| **Total** | — | **3,668** | **786** | **786** | **5,240** |
+
+*(Note: In the held-out test split $N=786$, Class 0 has $n=0$ lesions; the evaluated subgroups are Tone 1: 12, Tone 2: 72, Tone 3: 486, Tone 4: 153, Tone 5: 63. Total paired image counts across the entire dataset are exactly $2 \times$ the lesion figures: Class 0: 12, Class 1: 210, Class 2: 1,012, Class 3: 6,348, Class 4: 2,132, Class 5: 766, Total: 10,480 images).*
 
 ### 4.2 Mathematical Fairness Disparity Metrics
 To quantitatively evaluate algorithmic fairness, the pipeline computes the demographic performance disparity across subgroup slices $g \in \mathcal{G}$:

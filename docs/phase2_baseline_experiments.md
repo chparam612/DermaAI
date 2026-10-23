@@ -146,7 +146,7 @@ In clinical triage, the highest-cost failure mode is misclassifying a malignant 
 
 ## 7. Subgroup Fairness & Disaggregated Skin-Tone Audit
 
-Fairness is evaluated across **3 Fitzpatrick skin-tone buckets** and all **5 individual skin-tone levels** present in the test partition. Subgroups with $n < 30$ lesions are explicitly flagged **LOW-CONFIDENCE**. Bootstrap 95% confidence intervals are computed over 2,000 resamples.
+Fairness is evaluated across **3 skin-tone buckets** (derived from `skin_tone_class`: Dark 0–1, Medium 2–3, Light 4–5) and all **5 individual skin-tone levels** present in the test partition. Subgroups with $n < 30$ lesions are explicitly flagged **LOW-CONFIDENCE**. Bootstrap 95% confidence intervals are computed over 2,000 resamples.
 
 ### 3-Bucket Fairness Audit
 
@@ -200,7 +200,7 @@ Disaggregating performance within Tone 3 vs Non-Tone 3 reveals factors **associa
    All three differences exclude zero, confirming that discrimination across these prevalent non-BCC categories is significantly lower within Tone 3.
 3. **Tail-Class Zero-Recall**: All 5 rare classes (`BEN_OTH`, `DF`, `INF`, `MAL_OTH`, `VASC`) had 0 correctly detected lesions in Tone 3. However, because their test support in Tone 3 is tiny ($1$ to $3$ lesions), their confidence intervals are wide or degenerate.
 
-*Interpretation*: The depressed Macro-F1 and Balanced Accuracy in Tone 3 is **associated with** the combination of extreme local class skew towards BCC and significant recall drops on BKL, MEL, and NV, rather than direct optical interference from Fitzpatrick pigmentation alone.
+*Interpretation*: The depressed Macro-F1 and Balanced Accuracy in Tone 3 is **associated with** the combination of extreme local class skew towards BCC and significant recall drops on BKL, MEL, and NV, rather than direct optical interference from skin pigmentation alone.
 
 ---
 

@@ -11,7 +11,7 @@
 
 **SkinCancerTracker (DermaAI)** is a modular, research-grade deep learning and foundation model engineering framework designed for multi-class skin lesion diagnosis from multimodal dermatological data. Automated dermatology diagnosis presents two severe mathematical and clinical bottlenecks:
 1. **Extreme Class Imbalance**: Common benign neoplasms (e.g., Melanocytic Nevus, Basal Cell Carcinoma) vastly outnumber rare, highly aggressive malignancies (such as Invasive Melanoma or rare malignant carcinomas), creating imbalance ratios as extreme as **280.2 : 1**.
-2. **Demographic Performance Disparities (Algorithmic Inequity)**: Standard computer vision models exhibit performance degradation across darker skin tones (Fitzpatrick phototypes IV–VI) due to training dataset representation skews and contrasting lesion-skin chromophore patterns.
+2. **Demographic Performance Disparities (Algorithmic Inequity)**: Standard computer vision models exhibit performance degradation across darker skin tones (due to higher melanin pigmentation) due to training dataset representation skews and contrasting lesion-skin chromophore patterns.
 
 SkinCancerTracker addresses these challenges through:
 - **Lesion-Level Leakage-Free Data Splitting**: Strict disjoint partitioning of patient lesion clusters using `GroupShuffleSplit` across $5,240$ unique lesions and $10,480$ clinical/dermoscopic images.

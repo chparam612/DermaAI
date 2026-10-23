@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Tests Passing](https://img.shields.io/badge/tests-77%20passed-brightgreen.svg)](tests/)
 
-A modular, reproducible deep learning pipeline for skin lesion classification and foundation model evaluation on the MILK10k dataset, featuring lesion-level stratified splitting, demographic fairness auditing across Fitzpatrick phototypes, and paired bootstrap statistical testing.
+A modular, reproducible deep learning pipeline for skin lesion classification and foundation model evaluation on the MILK10k dataset, featuring lesion-level stratified splitting, demographic fairness auditing across skin tone subgroups (`skin_tone_class` 0–5), and paired bootstrap statistical testing.
 
 ---
 

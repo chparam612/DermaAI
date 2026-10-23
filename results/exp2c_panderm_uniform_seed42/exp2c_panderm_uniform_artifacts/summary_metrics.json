@@ -1,0 +1,517 @@
+{
+  "experiment_name": "exp2c-panderm-uniform",
+  "seed": 42,
+  "method": "Uniform Shuffling Control Arm (PanDerm ViT-Base)",
+  "runtime_info": {
+    "device": "cuda",
+    "gpu_name": "Tesla T4",
+    "total_training_time_seconds": 0.0,
+    "total_training_time_formatted": "0:00:00"
+  },
+  "validation_overall": {
+    "accuracy": 0.7582697201017812,
+    "balanced_accuracy": 0.52202233607845,
+    "macro_f1": 0.5166662022002645,
+    "weighted_f1": 0.7517583463734248,
+    "macro_precision": 0.5205214873103436,
+    "macro_recall": 0.52202233607845,
+    "macro_auroc": 0.8469619321608988,
+    "malignant_recall": 0.9039855072463768,
+    "malignant_precision": 0.8910714285714286,
+    "malignant_f1": 0.8974820143884892,
+    "malignant_auroc": 0.8746206490771707,
+    "malignant_classes": [
+      "BCC",
+      "MEL",
+      "SCCKA",
+      "MAL_OTH",
+      "AKIEC"
+    ],
+    "per_class": {
+      "AKIEC": {
+        "f1": 0.41379310344827586,
+        "recall": 0.3829787234042553,
+        "precision": 0.45,
+        "support": 47
+      },
+      "BCC": {
+        "f1": 0.8957528957528957,
+        "recall": 0.93048128342246,
+        "precision": 0.8635235732009926,
+        "support": 374
+      },
+      "BEN_OTH": {
+        "f1": 0.0,
+        "recall": 0.0,
+        "precision": 0.0,
+        "support": 9
+      },
+      "BKL": {
+        "f1": 0.5384615384615384,
+        "recall": 0.5316455696202531,
+        "precision": 0.5454545454545454,
+        "support": 79
+      },
+      "DF": {
+        "f1": 0.6,
+        "recall": 0.75,
+        "precision": 0.5,
+        "support": 8
+      },
+      "INF": {
+        "f1": 0.5,
+        "recall": 0.5714285714285714,
+        "precision": 0.4444444444444444,
+        "support": 7
+      },
+      "MAL_OTH": {
+        "f1": 0.0,
+        "recall": 0.0,
+        "precision": 0.0,
+        "support": 1
+      },
+      "MEL": {
+        "f1": 0.6,
+        "recall": 0.5689655172413793,
+        "precision": 0.6346153846153846,
+        "support": 58
+      },
+      "NV": {
+        "f1": 0.7723577235772358,
+        "recall": 0.753968253968254,
+        "precision": 0.7916666666666666,
+        "support": 126
+      },
+      "SCCKA": {
+        "f1": 0.6962962962962963,
+        "recall": 0.6527777777777778,
+        "precision": 0.746031746031746,
+        "support": 72
+      },
+      "VASC": {
+        "f1": 0.6666666666666666,
+        "recall": 0.6,
+        "precision": 0.75,
+        "support": 5
+      }
+    },
+    "confusion_matrix": [
+      [
+        18,
+        11,
+        0,
+        12,
+        1,
+        0,
+        0,
+        0,
+        0,
+        5,
+        0
+      ],
+      [
+        6,
+        348,
+        2,
+        6,
+        1,
+        1,
+        1,
+        1,
+        0,
+        8,
+        0
+      ],
+      [
+        0,
+        3,
+        0,
+        2,
+        0,
+        2,
+        0,
+        0,
+        2,
+        0,
+        0
+      ],
+      [
+        7,
+        15,
+        1,
+        42,
+        0,
+        1,
+        0,
+        5,
+        5,
+        3,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        6,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0
+      ],
+      [
+        1,
+        2,
+        0,
+        0,
+        0,
+        4,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        4,
+        0,
+        1,
+        1,
+        0,
+        0,
+        33,
+        17,
+        0,
+        1
+      ],
+      [
+        0,
+        9,
+        1,
+        5,
+        2,
+        1,
+        1,
+        12,
+        95,
+        0,
+        0
+      ],
+      [
+        7,
+        8,
+        0,
+        9,
+        1,
+        0,
+        0,
+        0,
+        0,
+        47,
+        0
+      ],
+      [
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3
+      ]
+    ],
+    "total_samples": 786
+  },
+  "test_overall": {
+    "accuracy": 0.7213740458015268,
+    "balanced_accuracy": 0.4723638828829135,
+    "macro_f1": 0.46903667604274074,
+    "weighted_f1": 0.7130827347578379,
+    "macro_precision": 0.4916622403634195,
+    "macro_recall": 0.4723638828829135,
+    "macro_auroc": 0.8367971471040435,
+    "malignant_recall": 0.888507718696398,
+    "malignant_precision": 0.8809523809523809,
+    "malignant_f1": 0.8847139197267293,
+    "malignant_auroc": 0.841840657715739,
+    "malignant_classes": [
+      "BCC",
+      "MEL",
+      "SCCKA",
+      "MAL_OTH",
+      "AKIEC"
+    ],
+    "per_class": {
+      "AKIEC": {
+        "f1": 0.49019607843137253,
+        "recall": 0.46296296296296297,
+        "precision": 0.5208333333333334,
+        "support": 54
+      },
+      "BCC": {
+        "f1": 0.8779284833538841,
+        "recall": 0.9104859335038363,
+        "precision": 0.8476190476190476,
+        "support": 391
+      },
+      "BEN_OTH": {
+        "f1": 0.18181818181818182,
+        "recall": 0.125,
+        "precision": 0.3333333333333333,
+        "support": 8
+      },
+      "BKL": {
+        "f1": 0.4161073825503356,
+        "recall": 0.3875,
+        "precision": 0.4492753623188406,
+        "support": 80
+      },
+      "DF": {
+        "f1": 0.4,
+        "recall": 0.6,
+        "precision": 0.3,
+        "support": 5
+      },
+      "INF": {
+        "f1": 0.3333333333333333,
+        "recall": 0.4,
+        "precision": 0.2857142857142857,
+        "support": 5
+      },
+      "MAL_OTH": {
+        "f1": 0.0,
+        "recall": 0.0,
+        "precision": 0.0,
+        "support": 2
+      },
+      "MEL": {
+        "f1": 0.5396825396825397,
+        "recall": 0.5074626865671642,
+        "precision": 0.576271186440678,
+        "support": 67
+      },
+      "NV": {
+        "f1": 0.7156862745098039,
+        "recall": 0.7373737373737373,
+        "precision": 0.6952380952380952,
+        "support": 99
+      },
+      "SCCKA": {
+        "f1": 0.6046511627906976,
+        "recall": 0.5652173913043478,
+        "precision": 0.65,
+        "support": 69
+      },
+      "VASC": {
+        "f1": 0.6,
+        "recall": 0.5,
+        "precision": 0.75,
+        "support": 6
+      }
+    },
+    "confusion_matrix": [
+      [
+        25,
+        7,
+        0,
+        11,
+        1,
+        0,
+        0,
+        3,
+        2,
+        5,
+        0
+      ],
+      [
+        3,
+        356,
+        1,
+        11,
+        4,
+        2,
+        1,
+        2,
+        3,
+        7,
+        1
+      ],
+      [
+        0,
+        1,
+        1,
+        3,
+        0,
+        0,
+        0,
+        1,
+        2,
+        0,
+        0
+      ],
+      [
+        12,
+        15,
+        0,
+        31,
+        0,
+        0,
+        0,
+        7,
+        6,
+        9,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        2,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        8,
+        0,
+        2,
+        2,
+        2,
+        0,
+        34,
+        18,
+        0,
+        0
+      ],
+      [
+        0,
+        12,
+        1,
+        4,
+        0,
+        0,
+        0,
+        9,
+        73,
+        0,
+        0
+      ],
+      [
+        7,
+        15,
+        0,
+        5,
+        0,
+        0,
+        0,
+        3,
+        0,
+        39,
+        0
+      ],
+      [
+        0,
+        2,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        3
+      ]
+    ],
+    "total_samples": 786
+  },
+  "subgroup_fairness": {
+    "subgroups": {
+      "skin_tone_1": {
+        "sample_count": 12,
+        "accuracy": 0.5833333333333334,
+        "balanced_accuracy": 0.5833333333333334,
+        "macro_f1": 0.5340136054421769
+      },
+      "skin_tone_2": {
+        "sample_count": 72,
+        "accuracy": 0.7777777777777778,
+        "balanced_accuracy": 0.7613826232247285,
+        "macro_f1": 0.693333946022118
+      },
+      "skin_tone_3": {
+        "sample_count": 486,
+        "accuracy": 0.7119341563786008,
+        "balanced_accuracy": 0.3647877704043301,
+        "macro_f1": 0.35110404681062685
+      },
+      "skin_tone_4": {
+        "sample_count": 153,
+        "accuracy": 0.7516339869281046,
+        "balanced_accuracy": 0.5823799012782501,
+        "macro_f1": 0.5985403893544997
+      },
+      "skin_tone_5": {
+        "sample_count": 63,
+        "accuracy": 0.6825396825396826,
+        "balanced_accuracy": 0.5200176366843033,
+        "macro_f1": 0.4220940170940171
+      }
+    },
+    "accuracy_disparity": 0.19444444444444442,
+    "balanced_accuracy_disparity": 0.3965948528203984,
+    "evaluated_subgroups_count": 5
+  },
+  "evaluation_note": "Training completed 30 epochs; final evaluation crashed on torch.load weights_only default. Evaluation re-run from best_model.pt with --epochs 0. Runtime fields below are not training time."
+}

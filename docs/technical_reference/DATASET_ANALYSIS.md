@@ -129,9 +129,13 @@ $$\rho = \frac{N_{\max}}{N_{\min}} = \frac{N_{\text{BCC}}}{N_{\text{MAL\_OTH}}} 
 ## 4. Skin-Tone Demographic Distribution & Algorithmic Fairness
 
 ### 4.1 Empirical Subgroup Counts
-In the MILK10k dataset, skin tone is recorded under the metadata variable `skin_tone_class`. Per the official MILK10k specification (Tschandl et al., *J. Invest. Dermatol.* and the ISIC Challenge benchmark), `skin_tone_class` is an integer categorical scale running from **0 to 5**, where:
-- **`0`**: **Very dark** skin tones
-- **`5`**: **Very light** skin tones
+In the MILK10k dataset, skin tone is recorded under the metadata variable `skin_tone_class`.
+
+Per the official ISIC Archive definition for MILK10k (Collection 425: [`https://api.isic-archive.com/api/v2/collections/425/`](https://api.isic-archive.com/api/v2/collections/425/) and Collection 424: [`https://api.isic-archive.com/api/v2/collections/424/`](https://api.isic-archive.com/api/v2/collections/424/); also hosted at [`https://challenge.isic-archive.com/`](https://challenge.isic-archive.com/)):
+
+> *"Skin tone is categorized into six levels, ranging from very dark (0) to very light (5), intentionally distinct from the Fitzpatrick skin types to avoid confusion. Most patients had skin tones in the middle ranges."*
+
+Only the endpoints of this scale are defined by the source: **Class 0 = very dark** and **Class 5 = very light**. Intermediate classes (1, 2, 3, 4) represent ordinal gradations without descriptive textual labels in the official metadata.
 
 > [!IMPORTANT]
 > `skin_tone_class` is **not** the Fitzpatrick scale. It was intentionally constructed by the dataset creators to be distinct from Fitzpatrick phototypes (which run in the opposite direction, from Type I = very light to Type VI = very dark) to avoid clinical ambiguity and standardize multi-institutional annotations.
@@ -142,14 +146,14 @@ In the MILK10k dataset, skin tone is recorded under the metadata variable `skin_
 
 Each unique lesion has identical skin tone across paired clinical & dermoscopic modalities. Because baseline experiments evaluate on single-modality dermoscopic images (1 image per lesion), the unique lesion counts below correspond exactly to the evaluation sample sizes in each split:
 
-| `skin_tone_class` | Polarity / Spectrum | Train (Lesions) | Validation (Lesions) | Test (Lesions) | Total (All Splits) |
+| `skin_tone_class` | Official Definition | Train (Lesions) | Validation (Lesions) | Test (Lesions) | Total (All Splits) |
 |:---:|:---:|:---:|:---:|:---:|:---:|
-| **Class 0** | Very Dark | 2 | 4 | 0 | 6 |
-| **Class 1** | Dark | 82 | 11 | 12 | 105 |
-| **Class 2** | Medium-Dark | 358 | 76 | 72 | 506 |
-| **Class 3** | Medium (Majority) | 2,198 | 490 | 486 | 3,174 |
-| **Class 4** | Light | 754 | 159 | 153 | 1,066 |
-| **Class 5** | Very Light | 274 | 46 | 63 | 383 |
+| **Class 0** | very dark | 2 | 4 | 0 | 6 |
+| **Class 1** | — | 82 | 11 | 12 | 105 |
+| **Class 2** | — | 358 | 76 | 72 | 506 |
+| **Class 3** | — | 2,198 | 490 | 486 | 3,174 |
+| **Class 4** | — | 754 | 159 | 153 | 1,066 |
+| **Class 5** | very light | 274 | 46 | 63 | 383 |
 | **NULL / Missing** | — | 0 | 0 | 0 | 0 |
 | **Total** | — | **3,668** | **786** | **786** | **5,240** |
 

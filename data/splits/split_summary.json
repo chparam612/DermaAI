@@ -1,0 +1,24 @@
+{
+  "total_images": 10480,
+  "total_lesions": 5240,
+  "partitions": {
+    "train": {
+      "image_count": 7336,
+      "image_pct": 70.0,
+      "lesion_count": 3668,
+      "lesion_pct": 70.0
+    },
+    "validation": {
+      "image_count": 1572,
+      "image_pct": 15.0,
+      "lesion_count": 786,
+      "lesion_pct": 15.0
+    },
+    "test": {
+      "image_count": 1572,
+      "image_pct": 15.0,
+      "lesion_count": 786,
+      "lesion_pct": 15.0
+    }
+  }
+}
